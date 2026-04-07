@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import date
 
 from flask import Flask, abort, flash, redirect, render_template, request, url_for
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import joinedload, selectinload
 
 from .extensions import db
@@ -25,6 +25,7 @@ def register_routes(app: Flask) -> None:
 
     @app.get("/admin")
     def admin_dashboard():
+        generated_link_id = request.args.get("generated_link_id", type=int)
         flats = db.session.scalars(
             select(Flat)
             .options(selectinload(Flat.reservations))
@@ -54,6 +55,17 @@ def register_routes(app: Flask) -> None:
             "available": sum(card.status == "Available" for card in availability_cards),
             "total": len(availability_cards),
         }
+        generated_link_url = None
+
+        if generated_link_id:
+            generated_link = db.session.get(CheckinLink, generated_link_id)
+
+            if generated_link is not None:
+                generated_link_url = url_for(
+                    "public_checkin",
+                    token=generated_link.token,
+                    _external=True,
+                )
 
         return render_template(
             "admin.html",
@@ -62,7 +74,7 @@ def register_routes(app: Flask) -> None:
             availability_cards=availability_cards,
             linkable_reservations=linkable_reservations,
             summary=summary,
-            example_public_url=url_for("public_checkin", token="abc123ef", _external=True),
+            generated_link_url=generated_link_url,
         )
 
     @app.post("/admin/links")
@@ -103,7 +115,7 @@ def register_routes(app: Flask) -> None:
         db.session.commit()
 
         flash(f"Check-in link created for {flat.name}.", "success")
-        return redirect(url_for("link_details", link_id=checkin_link.id))
+        return redirect(url_for("admin_dashboard", generated_link_id=checkin_link.id))
 
     @app.get("/admin/links/<int:link_id>")
     def link_details(link_id: int):
@@ -175,6 +187,37 @@ def register_routes(app: Flask) -> None:
             reservations=reservations,
             status_options=ReservationStatus.choices(),
             selected_flat_id=request.args.get("flat_id", type=int),
+        )
+
+    @app.get("/admin/reports")
+    def reports_dashboard():
+        total_links = db.session.scalar(select(func.count(CheckinLink.id))) or 0
+        confirmed_links = db.session.scalar(select(func.count(Confirmation.id))) or 0
+        total_reservations = db.session.scalar(select(func.count(Reservation.id))) or 0
+        occupied_flats = sum(
+            item.status == "Occupied"
+            for item in build_flats_dashboard(
+                db.session.scalars(
+                    select(Flat)
+                    .options(selectinload(Flat.reservations))
+                    .order_by(Flat.name)
+                ).all()
+            )
+        )
+        latest_links = db.session.scalars(
+            select(CheckinLink)
+            .options(joinedload(CheckinLink.flat), joinedload(CheckinLink.confirmation))
+            .order_by(CheckinLink.created_at.desc())
+            .limit(8)
+        ).all()
+
+        return render_template(
+            "reports.html",
+            total_links=total_links,
+            confirmed_links=confirmed_links,
+            total_reservations=total_reservations,
+            occupied_flats=occupied_flats,
+            latest_links=latest_links,
         )
 
     @app.post("/admin/reservations")

@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}Reports | Campina Flats{% endblock %}
+
+{% block content %}
+<section class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+    <div class="metric-card p-5">
+        <p class="metric-label">Generated links</p>
+        <p class="metric-value">{{ total_links }}</p>
+    </div>
+    <div class="metric-card p-5">
+        <p class="metric-label">Confirmed links</p>
+        <p class="metric-value text-emerald-600">{{ confirmed_links }}</p>
+    </div>
+    <div class="metric-card p-5">
+        <p class="metric-label">Reservations</p>
+        <p class="metric-value">{{ total_reservations }}</p>
+    </div>
+    <div class="metric-card p-5">
+        <p class="metric-label">Occupied flats</p>
+        <p class="metric-value text-orange-500">{{ occupied_flats }}</p>
+    </div>
+</section>
+
+<section class="surface-card mt-6 p-7">
+    <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div>
+            <p class="kicker">Reports</p>
+            <h2 class="headline-lg">Recent check-in activity</h2>
+        </div>
+        <p class="max-w-md text-sm leading-7 text-slate-500">A lightweight reporting view for the MVP.</p>
+    </div>
+
+    <div class="table-shell mt-7">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Flat</th>
+                    <th>Guest</th>
+                    <th>Created</th>
+                    <th>Views</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for link in latest_links %}
+                    <tr>
+                        <td class="font-semibold text-slate-900">{{ link.flat.name }}</td>
+                        <td>{{ link.guest_name or "Not informed" }}</td>
+                        <td>{{ link.created_at|datetime_label }}</td>
+                        <td>{{ link.view_count }}</td>
+                        <td>
+                            {% if link.confirmation %}
+                                <span class="chip chip-success">Confirmed</span>
+                            {% else %}
+                                <span class="chip chip-warning">Pending</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center text-slate-500">No report data available yet.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

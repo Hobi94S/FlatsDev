@@ -1,52 +1,54 @@
 {% extends "base.html" %}
 
-{% block title %}Flats | Campina Flats{% endblock %}
+{% block title %}Dashboard | Campina Flats{% endblock %}
 
 {% block content %}
-<section class="rounded-[2rem] border border-white/10 bg-white/5 p-6 shadow-2xl shadow-sky-950/20 backdrop-blur">
-    <p class="text-sm uppercase tracking-[0.3em] text-sky-300">Flats dashboard</p>
-    <h1 class="mt-3 text-3xl font-semibold text-white">Availability and occupancy overview</h1>
-    <p class="mt-4 max-w-3xl text-sm leading-6 text-slate-300">
-        Each flat shows its current operational status and the next reservation window so you can quickly identify where action is needed.
-    </p>
+<section class="surface-card p-7">
+    <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div class="max-w-3xl">
+            <p class="kicker">Dashboard</p>
+            <h2 class="headline-xl">Flat availability overview</h2>
+            <p class="body-copy">Track occupancy, upcoming stays, and the next reservation windows across the portfolio.</p>
+        </div>
+    </div>
 
-    <div class="mt-8 overflow-hidden rounded-2xl border border-white/10">
-        <table class="min-w-full divide-y divide-white/10 text-left text-sm">
-            <thead class="bg-slate-900/80 text-slate-300">
+    <div class="table-shell mt-8">
+        <table class="data-table">
+            <thead>
                 <tr>
-                    <th class="px-4 py-3 font-medium">Flat</th>
-                    <th class="px-4 py-3 font-medium">Status</th>
-                    <th class="px-4 py-3 font-medium">Guest</th>
-                    <th class="px-4 py-3 font-medium">Next check-in</th>
-                    <th class="px-4 py-3 font-medium">Next check-out</th>
-                    <th class="px-4 py-3 font-medium">Actions</th>
+                    <th>Flat</th>
+                    <th>Status</th>
+                    <th>Guest</th>
+                    <th>Next check-in</th>
+                    <th>Next check-out</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-white/10 bg-slate-950/50 text-slate-200">
+            <tbody>
                 {% for item in availability_cards %}
                     <tr>
-                        <td class="px-4 py-3">
-                            <p class="font-medium text-white">{{ item.flat.name }}</p>
-                            <p class="mt-1 text-xs text-slate-400">{{ item.flat.address }}</p>
+                        <td>
+                            <p class="font-semibold text-slate-900">{{ item.flat.name }}</p>
+                            <p class="mt-1 text-xs text-slate-500">{{ item.flat.address }}</p>
                         </td>
-                        <td class="px-4 py-3">
-                            <span class="rounded-full px-3 py-1 text-xs font-medium {{ 'bg-orange-400/10 text-orange-200' if item.status == 'Occupied' else 'bg-sky-400/10 text-sky-200' if item.status == 'Upcoming' else 'bg-emerald-400/10 text-emerald-200' }}">
+                        <td>
+                            <span class="chip {{ 'chip-warning' if item.status == 'Occupied' else 'chip-info' if item.status == 'Upcoming' else 'chip-success' }}">
                                 {{ item.status }}
                             </span>
                         </td>
-                        <td class="px-4 py-3">{{ item.focus_reservation.guest_name if item.focus_reservation else "-" }}</td>
-                        <td class="px-4 py-3">{{ item.next_checkin_date|date_label }}</td>
-                        <td class="px-4 py-3">{{ item.next_checkout_date|date_label }}</td>
-                        <td class="px-4 py-3">
+                        <td>{{ item.focus_reservation.guest_name if item.focus_reservation else "-" }}</td>
+                        <td>{{ item.next_checkin_date|date_label }}</td>
+                        <td>{{ item.next_checkout_date|date_label }}</td>
+                        <td>
                             <div class="flex flex-wrap gap-3">
-                                <a href="{{ url_for('flat_calendar', flat_id=item.flat.id) }}" class="text-sky-300 transition hover:text-sky-200">Calendar</a>
-                                <a href="{{ url_for('reservations_dashboard', flat_id=item.flat.id) }}" class="text-orange-300 transition hover:text-orange-200">Add reservation</a>
+                                <a href="{{ url_for('flat_calendar', flat_id=item.flat.id) }}" class="muted-link">Calendar</a>
+                                <a href="{{ url_for('reservations_dashboard', flat_id=item.flat.id) }}" class="text-sm font-semibold text-slate-600 transition hover:text-slate-900">Add reservation</a>
                             </div>
                         </td>
                     </tr>
                 {% else %}
                     <tr>
-                        <td colspan="6" class="px-4 py-8 text-center text-slate-400">No flats available.</td>
+                        <td colspan="6" class="text-center text-slate-500">No flats available.</td>
                     </tr>
                 {% endfor %}
             </tbody>

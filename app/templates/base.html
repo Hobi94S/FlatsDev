@@ -7,36 +7,110 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}">
 </head>
-<body class="min-h-screen bg-slate-950 text-slate-100">
-    <div class="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.22),_transparent_40%),radial-gradient(circle_at_bottom_right,_rgba(249,115,22,0.18),_transparent_35%)]"></div>
-    <main class="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-4 py-8 sm:px-6 lg:px-8">
-        {% if request.path.startswith("/admin") %}
-            <header class="mb-8 rounded-[2rem] border border-white/10 bg-white/5 px-5 py-4 shadow-xl shadow-sky-950/20 backdrop-blur">
-                <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                    <div>
-                        <a href="{{ url_for('admin_dashboard') }}" class="text-sm uppercase tracking-[0.3em] text-sky-300">Campina Flats</a>
-                        <p class="mt-2 text-sm text-slate-300">Operations panel for check-ins, reservations, and flat availability.</p>
+<body class="min-h-screen">
+    {% if request.path.startswith("/admin") %}
+        <div class="admin-shell min-h-screen text-slate-900">
+            <aside class="admin-sidebar fixed inset-y-0 left-0 z-30 hidden w-72 flex-col border-r border-slate-200/80 px-6 py-7 lg:flex">
+                <a href="{{ url_for('admin_dashboard') }}" class="flex items-center gap-3">
+                    <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white shadow-[0_18px_30px_-18px_rgba(37,99,235,0.65)]">
+                        <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 10.5 12 3l9 7.5M5.25 9.75V20.25h13.5V9.75M9 20.25V14h6v6.25" />
+                        </svg>
                     </div>
-                    <nav class="flex flex-wrap gap-2 text-sm">
-                        <a href="{{ url_for('admin_dashboard') }}" class="rounded-full px-4 py-2 transition {{ 'bg-sky-400 text-slate-950' if request.endpoint == 'admin_dashboard' else 'bg-slate-900/70 text-slate-200 hover:bg-slate-800' }}">Overview</a>
-                        <a href="{{ url_for('flats_dashboard') }}" class="rounded-full px-4 py-2 transition {{ 'bg-sky-400 text-slate-950' if request.endpoint in ['flats_dashboard', 'flat_calendar'] else 'bg-slate-900/70 text-slate-200 hover:bg-slate-800' }}">Flats</a>
-                        <a href="{{ url_for('reservations_dashboard') }}" class="rounded-full px-4 py-2 transition {{ 'bg-sky-400 text-slate-950' if request.endpoint in ['reservations_dashboard', 'create_reservation_route'] else 'bg-slate-900/70 text-slate-200 hover:bg-slate-800' }}">Reservations</a>
-                    </nav>
+                    <div>
+                        <p class="text-[0.95rem] font-semibold tracking-[-0.02em] text-slate-950">Campina Flats</p>
+                        <p class="mt-0.5 text-xs font-medium text-slate-500">Internal operations</p>
+                    </div>
+                </a>
+
+                <nav class="mt-10 space-y-2">
+                    <a href="{{ url_for('flats_dashboard') }}" class="sidebar-link {{ 'sidebar-link-active' if request.endpoint in ['flats_dashboard', 'flat_calendar'] else '' }}">
+                        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75h6.5v6.5h-6.5zm10 0h6.5v6.5h-6.5zm-10 10h6.5v6.5h-6.5zm10 3.25h6.5m-6.5-3.25h6.5m-6.5 6.5h6.5" />
+                        </svg>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="{{ url_for('admin_dashboard') }}" class="sidebar-link {{ 'sidebar-link-active' if request.endpoint in ['admin_dashboard', 'create_checkin_link', 'link_details'] else '' }}">
+                        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5 21 3m-5.25 0H21v5.25M10.5 13.5l-7.5 7.5m0-5.25V21h5.25M7.5 7.5h9m-9 4.5h5.25" />
+                        </svg>
+                        <span>Generate Check-in Link</span>
+                    </a>
+                    <a href="{{ url_for('reservations_dashboard') }}" class="sidebar-link {{ 'sidebar-link-active' if request.endpoint in ['reservations_dashboard', 'create_reservation_route'] else '' }}">
+                        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 3v3m7.5-3v3m-10.5 4.5h13.5M4.5 7.5h15a1.5 1.5 0 0 1 1.5 1.5v9a3 3 0 0 1-3 3h-12a3 3 0 0 1-3-3v-9A1.5 1.5 0 0 1 4.5 7.5Z" />
+                        </svg>
+                        <span>Reservations</span>
+                    </a>
+                    <a href="{{ url_for('reports_dashboard') }}" class="sidebar-link {{ 'sidebar-link-active' if request.endpoint == 'reports_dashboard' else '' }}">
+                        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 19.5h15M7.5 16.5v-6m4.5 6v-10.5m4.5 10.5v-3" />
+                        </svg>
+                        <span>Reports</span>
+                    </a>
+                </nav>
+
+                <div class="surface-card-subtle mt-auto p-5">
+                    <p class="text-sm font-semibold tracking-[-0.02em] text-slate-900">Fast guest communication</p>
+                    <p class="mt-2 text-sm leading-7 text-slate-600">Generate links, monitor reservations, and keep your team aligned in one calm, premium workspace.</p>
                 </div>
-            </header>
-        {% endif %}
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                <div class="mb-6 space-y-3">
-                    {% for category, message in messages %}
-                        <div class="rounded-2xl border px-4 py-3 text-sm shadow-lg backdrop-blur {{ 'border-emerald-400/40 bg-emerald-400/10 text-emerald-100' if category == 'success' else 'border-amber-400/40 bg-amber-400/10 text-amber-100' }}">
-                            {{ message }}
+            </aside>
+
+            <div class="lg:pl-72">
+                <header class="admin-topbar sticky top-0 z-20 border-b border-slate-200/80">
+                    <div class="flex items-center justify-between px-5 py-5 sm:px-8 lg:px-10">
+                        <div>
+                            <p class="text-[0.7rem] font-bold uppercase tracking-[0.28em] text-blue-600">Campina Flats</p>
+                            <h1 class="mt-1.5 text-[1.15rem] font-semibold tracking-[-0.035em] text-slate-950 sm:text-[1.3rem]">PAINEL INTERNO - CAMPINA FLATS</h1>
                         </div>
-                    {% endfor %}
-                </div>
-            {% endif %}
-        {% endwith %}
-        {% block content %}{% endblock %}
-    </main>
+                        <div class="flex items-center gap-3">
+                            <button type="button" class="flex h-11 w-11 items-center justify-center rounded-full border border-slate-200/80 bg-white/90 text-slate-500 shadow-[0_10px_25px_-20px_rgba(15,23,42,0.3)] transition hover:border-blue-200 hover:text-blue-600">
+                                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M14.25 18.75a2.25 2.25 0 0 1-4.5 0m9-2.25H5.25l1.2-1.2a2.25 2.25 0 0 0 .66-1.59V10.5a4.875 4.875 0 1 1 9.75 0v3.21c0 .597.237 1.169.66 1.591l1.2 1.199Z" />
+                                </svg>
+                            </button>
+                            <div class="flex items-center gap-3 rounded-full border border-slate-200/80 bg-white/92 px-3 py-2 shadow-[0_10px_25px_-20px_rgba(15,23,42,0.3)]">
+                                <div class="text-right">
+                                    <p class="text-sm font-semibold tracking-[-0.02em] text-slate-900">Operations User</p>
+                                    <p class="text-xs font-medium text-slate-500">Admin</p>
+                                </div>
+                                <div class="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-slate-900 to-slate-700 text-sm font-semibold text-white">CF</div>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                <main class="px-5 py-8 sm:px-8 lg:px-10">
+                    <nav class="mb-6 flex gap-2 overflow-x-auto pb-1 lg:hidden">
+                        <a href="{{ url_for('flats_dashboard') }}" class="mobile-nav-link {{ 'mobile-nav-link-active' if request.endpoint in ['flats_dashboard', 'flat_calendar'] else '' }}">Dashboard</a>
+                        <a href="{{ url_for('admin_dashboard') }}" class="mobile-nav-link {{ 'mobile-nav-link-active' if request.endpoint in ['admin_dashboard', 'create_checkin_link', 'link_details'] else '' }}">Check-in</a>
+                        <a href="{{ url_for('reservations_dashboard') }}" class="mobile-nav-link {{ 'mobile-nav-link-active' if request.endpoint in ['reservations_dashboard', 'create_reservation_route'] else '' }}">Reservations</a>
+                        <a href="{{ url_for('reports_dashboard') }}" class="mobile-nav-link {{ 'mobile-nav-link-active' if request.endpoint == 'reports_dashboard' else '' }}">Reports</a>
+                    </nav>
+    {% else %}
+        <main class="public-shell min-h-screen px-4 py-8 text-slate-100 sm:px-6 lg:px-8">
+    {% endif %}
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="{% if request.path.startswith('/admin') %}mb-6 space-y-3{% else %}mx-auto mb-6 w-full max-w-5xl space-y-3{% endif %}">
+                {% for category, message in messages %}
+                    <div class="{% if request.path.startswith('/admin') %}surface-card-subtle px-5 py-4 text-sm font-medium shadow-none {% if category == 'success' %}text-emerald-700{% else %}text-amber-700{% endif %}{% else %}rounded-2xl border px-4 py-3 text-sm shadow-lg backdrop-blur {{ 'border-emerald-400/40 bg-emerald-400/10 text-emerald-100' if category == 'success' else 'border-amber-400/40 bg-amber-400/10 text-amber-100' }}{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+
+    {% if request.path.startswith("/admin") %}
+                </main>
+            </div>
+        </div>
+    {% else %}
+        </main>
+    {% endif %}
 </body>
 </html>

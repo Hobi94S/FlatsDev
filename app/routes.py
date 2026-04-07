@@ -1,0 +1,269 @@
+from __future__ import annotations
+
+from datetime import date
+
+from flask import Flask, abort, flash, redirect, render_template, request, url_for
+from sqlalchemy import select
+from sqlalchemy.orm import joinedload, selectinload
+
+from .extensions import db
+from .models import CheckinLink, Confirmation, Flat, Reservation, ReservationStatus
+from .services import (
+    build_flat_availability,
+    build_flat_calendar,
+    build_flats_dashboard,
+    create_reservation,
+    generate_token,
+    mark_link_viewed,
+)
+
+
+def register_routes(app: Flask) -> None:
+    @app.get("/")
+    def home():
+        return redirect(url_for("admin_dashboard"))
+
+    @app.get("/admin")
+    def admin_dashboard():
+        flats = db.session.scalars(
+            select(Flat)
+            .options(selectinload(Flat.reservations))
+            .order_by(Flat.name)
+        ).all()
+        availability_cards = build_flats_dashboard(flats)
+        recent_links = db.session.scalars(
+            select(CheckinLink)
+            .options(
+                joinedload(CheckinLink.flat),
+                joinedload(CheckinLink.confirmation),
+                joinedload(CheckinLink.reservation),
+            )
+            .order_by(CheckinLink.created_at.desc())
+            .limit(10)
+        ).all()
+        linkable_reservations = db.session.scalars(
+            select(Reservation)
+            .options(joinedload(Reservation.flat))
+            .where(Reservation.status == ReservationStatus.BOOKED)
+            .where(Reservation.checkout_date >= date.today())
+            .order_by(Reservation.checkin_date, Reservation.guest_name)
+        ).all()
+        summary = {
+            "occupied": sum(card.status == "Occupied" for card in availability_cards),
+            "upcoming": sum(card.status == "Upcoming" for card in availability_cards),
+            "available": sum(card.status == "Available" for card in availability_cards),
+            "total": len(availability_cards),
+        }
+
+        return render_template(
+            "admin.html",
+            flats=flats,
+            recent_links=recent_links,
+            availability_cards=availability_cards,
+            linkable_reservations=linkable_reservations,
+            summary=summary,
+            example_public_url=url_for("public_checkin", token="abc123ef", _external=True),
+        )
+
+    @app.post("/admin/links")
+    def create_checkin_link():
+        flat_id = request.form.get("flat_id", type=int)
+        reservation_id = request.form.get("reservation_id", type=int)
+        guest_name = (request.form.get("guest_name") or "").strip() or None
+
+        reservation = None
+        if reservation_id:
+            reservation = db.session.get(Reservation, reservation_id)
+
+            if reservation is None:
+                abort(404)
+
+            flat_id = reservation.flat_id
+            guest_name = guest_name or reservation.guest_name
+
+        if not flat_id:
+            flash(
+                "Please select a flat or choose a reservation before generating the link.",
+                "error",
+            )
+            return redirect(url_for("admin_dashboard"))
+
+        flat = db.session.get(Flat, flat_id)
+
+        if flat is None:
+            abort(404)
+
+        checkin_link = CheckinLink(
+            token=generate_token(),
+            flat_id=flat_id,
+            guest_name=guest_name,
+            reservation=reservation,
+        )
+        db.session.add(checkin_link)
+        db.session.commit()
+
+        flash(f"Check-in link created for {flat.name}.", "success")
+        return redirect(url_for("link_details", link_id=checkin_link.id))
+
+    @app.get("/admin/links/<int:link_id>")
+    def link_details(link_id: int):
+        link = db.session.scalar(
+            select(CheckinLink)
+            .options(
+                joinedload(CheckinLink.flat),
+                joinedload(CheckinLink.confirmation),
+                joinedload(CheckinLink.reservation),
+            )
+            .where(CheckinLink.id == link_id)
+        )
+
+        if link is None:
+            abort(404)
+
+        return render_template(
+            "link_details.html",
+            link=link,
+            public_url=url_for("public_checkin", token=link.token, _external=True),
+        )
+
+    @app.get("/admin/flats")
+    def flats_dashboard():
+        flats = db.session.scalars(
+            select(Flat)
+            .options(selectinload(Flat.reservations))
+            .order_by(Flat.name)
+        ).all()
+        availability_cards = build_flats_dashboard(flats)
+
+        return render_template("flats.html", availability_cards=availability_cards)
+
+    @app.get("/admin/flats/<int:flat_id>/calendar")
+    def flat_calendar(flat_id: int):
+        flat = db.session.scalar(
+            select(Flat)
+            .options(selectinload(Flat.reservations))
+            .where(Flat.id == flat_id)
+        )
+
+        if flat is None:
+            abort(404)
+
+        availability = build_flat_availability(flat)
+        calendar_days = build_flat_calendar(flat, number_of_days=42)
+        reservations = sorted(flat.reservations, key=lambda item: item.checkin_date)
+
+        return render_template(
+            "flat_calendar.html",
+            flat=flat,
+            availability=availability,
+            calendar_days=calendar_days,
+            reservations=reservations,
+        )
+
+    @app.get("/admin/reservations")
+    def reservations_dashboard():
+        flats = db.session.scalars(select(Flat).order_by(Flat.name)).all()
+        reservations = db.session.scalars(
+            select(Reservation)
+            .options(joinedload(Reservation.flat))
+            .order_by(Reservation.checkin_date.desc(), Reservation.created_at.desc())
+        ).all()
+
+        return render_template(
+            "reservations.html",
+            flats=flats,
+            reservations=reservations,
+            status_options=ReservationStatus.choices(),
+            selected_flat_id=request.args.get("flat_id", type=int),
+        )
+
+    @app.post("/admin/reservations")
+    def create_reservation_route():
+        flat_id = request.form.get("flat_id", type=int)
+        guest_name = (request.form.get("guest_name") or "").strip()
+        checkin_date = parse_date_field(request.form.get("checkin_date"))
+        checkout_date = parse_date_field(request.form.get("checkout_date"))
+        status = request.form.get("status") or ReservationStatus.BOOKED
+
+        if not flat_id:
+            flash("Please select a flat for the reservation.", "error")
+            return redirect(url_for("reservations_dashboard"))
+
+        if checkin_date is None or checkout_date is None:
+            flash("Please provide valid check-in and check-out dates.", "error")
+            return redirect(url_for("reservations_dashboard", flat_id=flat_id))
+
+        if db.session.get(Flat, flat_id) is None:
+            abort(404)
+
+        try:
+            reservation = create_reservation(
+                flat_id=flat_id,
+                guest_name=guest_name,
+                checkin_date=checkin_date,
+                checkout_date=checkout_date,
+                status=status,
+            )
+        except ValueError as error:
+            flash(str(error), "error")
+            return redirect(url_for("reservations_dashboard", flat_id=flat_id))
+
+        db.session.commit()
+        flash(f"Reservation created for {reservation.guest_name}.", "success")
+        return redirect(url_for("flat_calendar", flat_id=flat_id))
+
+    @app.get("/checkin/<token>")
+    def public_checkin(token: str):
+        link = fetch_link_by_token(token)
+
+        if link is None:
+            abort(404)
+
+        mark_link_viewed(link)
+        db.session.commit()
+
+        return render_template("public_checkin.html", link=link)
+
+    @app.post("/checkin/<token>/confirm")
+    def confirm_checkin(token: str):
+        link = fetch_link_by_token(token)
+
+        if link is None:
+            abort(404)
+
+        if link.confirmation is None:
+            db.session.add(
+                Confirmation(
+                    checkin_link_id=link.id,
+                    ip_address=request.headers.get("X-Forwarded-For", request.remote_addr),
+                    user_agent=request.headers.get("User-Agent"),
+                )
+            )
+            db.session.commit()
+            flash("Confirmation stored successfully. Thank you.", "success")
+        else:
+            flash("This confirmation was already recorded.", "success")
+
+        return redirect(url_for("public_checkin", token=token))
+
+
+def fetch_link_by_token(token: str) -> CheckinLink | None:
+    return db.session.scalar(
+        select(CheckinLink)
+        .options(
+            joinedload(CheckinLink.flat),
+            joinedload(CheckinLink.confirmation),
+            joinedload(CheckinLink.reservation),
+        )
+        .where(CheckinLink.token == token)
+    )
+
+
+def parse_date_field(raw_value: str | None) -> date | None:
+    if not raw_value:
+        return None
+
+    try:
+        return date.fromisoformat(raw_value)
+    except ValueError:
+        return None

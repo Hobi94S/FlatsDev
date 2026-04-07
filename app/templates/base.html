@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Campina Flats{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}">
+</head>
+<body class="min-h-screen bg-slate-950 text-slate-100">
+    <div class="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.22),_transparent_40%),radial-gradient(circle_at_bottom_right,_rgba(249,115,22,0.18),_transparent_35%)]"></div>
+    <main class="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-4 py-8 sm:px-6 lg:px-8">
+        {% if request.path.startswith("/admin") %}
+            <header class="mb-8 rounded-[2rem] border border-white/10 bg-white/5 px-5 py-4 shadow-xl shadow-sky-950/20 backdrop-blur">
+                <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                    <div>
+                        <a href="{{ url_for('admin_dashboard') }}" class="text-sm uppercase tracking-[0.3em] text-sky-300">Campina Flats</a>
+                        <p class="mt-2 text-sm text-slate-300">Operations panel for check-ins, reservations, and flat availability.</p>
+                    </div>
+                    <nav class="flex flex-wrap gap-2 text-sm">
+                        <a href="{{ url_for('admin_dashboard') }}" class="rounded-full px-4 py-2 transition {{ 'bg-sky-400 text-slate-950' if request.endpoint == 'admin_dashboard' else 'bg-slate-900/70 text-slate-200 hover:bg-slate-800' }}">Overview</a>
+                        <a href="{{ url_for('flats_dashboard') }}" class="rounded-full px-4 py-2 transition {{ 'bg-sky-400 text-slate-950' if request.endpoint in ['flats_dashboard', 'flat_calendar'] else 'bg-slate-900/70 text-slate-200 hover:bg-slate-800' }}">Flats</a>
+                        <a href="{{ url_for('reservations_dashboard') }}" class="rounded-full px-4 py-2 transition {{ 'bg-sky-400 text-slate-950' if request.endpoint in ['reservations_dashboard', 'create_reservation_route'] else 'bg-slate-900/70 text-slate-200 hover:bg-slate-800' }}">Reservations</a>
+                    </nav>
+                </div>
+            </header>
+        {% endif %}
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="mb-6 space-y-3">
+                    {% for category, message in messages %}
+                        <div class="rounded-2xl border px-4 py-3 text-sm shadow-lg backdrop-blur {{ 'border-emerald-400/40 bg-emerald-400/10 text-emerald-100' if category == 'success' else 'border-amber-400/40 bg-amber-400/10 text-amber-100' }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

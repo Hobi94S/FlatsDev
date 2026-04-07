@@ -1,0 +1,7 @@
+body {
+    font-family: "Segoe UI", sans-serif;
+}
+
+::selection {
+    background: rgba(56, 189, 248, 0.35);
+}

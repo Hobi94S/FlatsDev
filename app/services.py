@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import secrets
+import re
+import unicodedata
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
 
@@ -33,6 +35,97 @@ def generate_token(length: int = 8) -> str:
 
         if exists is None:
             return token
+
+
+def slugify(value: str) -> str:
+    normalized = unicodedata.normalize("NFKD", value)
+    ascii_value = normalized.encode("ascii", "ignore").decode("ascii").lower()
+    slug = re.sub(r"[^a-z0-9]+", "-", ascii_value).strip("-")
+    return slug or "flat"
+
+
+def generate_unique_flat_slug(building_name: str, room_number: str) -> str:
+    base_slug = slugify(f"{building_name}-{room_number}")
+    slug = base_slug
+    suffix = 2
+
+    while db.session.scalar(select(Flat.id).where(Flat.slug == slug)) is not None:
+        slug = f"{base_slug}-{suffix}"
+        suffix += 1
+
+    return slug
+
+
+def create_flat(
+    *,
+    building_name: str,
+    room_number: str,
+    address: str,
+    checkin_time: str,
+    checkout_time: str,
+    house_rules: str,
+    wifi_name: str,
+    wifi_password: str,
+    parking_instructions: str,
+) -> Flat:
+    normalized_building_name = building_name.strip()
+    normalized_room_number = room_number.strip()
+    normalized_address = address.strip()
+    normalized_house_rules = house_rules.strip()
+    normalized_wifi_name = wifi_name.strip()
+    normalized_wifi_password = wifi_password.strip()
+    normalized_parking = parking_instructions.strip()
+
+    if not normalized_building_name:
+        raise ValueError("O nome do empreendimento e obrigatorio.")
+
+    if not normalized_room_number:
+        raise ValueError("O numero do quarto ou flat e obrigatorio.")
+
+    if not normalized_address:
+        raise ValueError("O endereco e obrigatorio.")
+
+    if not checkin_time:
+        raise ValueError("O horario de check-in e obrigatorio.")
+
+    if not checkout_time:
+        raise ValueError("O horario de check-out e obrigatorio.")
+
+    if not normalized_house_rules:
+        raise ValueError("As regras da hospedagem sao obrigatorias.")
+
+    if not normalized_wifi_name:
+        raise ValueError("O nome da rede Wi-Fi e obrigatorio.")
+
+    if not normalized_wifi_password:
+        raise ValueError("A senha do Wi-Fi e obrigatoria.")
+
+    if not normalized_parking:
+        raise ValueError("As instrucoes de estacionamento sao obrigatorias.")
+
+    existing_flat = db.session.scalar(
+        select(Flat)
+        .where(Flat.building_name == normalized_building_name)
+        .where(Flat.room_number == normalized_room_number)
+    )
+    if existing_flat is not None:
+        raise ValueError("Ja existe um flat com esse empreendimento e quarto.")
+
+    flat = Flat(
+        building_name=normalized_building_name,
+        room_number=normalized_room_number,
+        name=f"{normalized_building_name} - {normalized_room_number}",
+        slug=generate_unique_flat_slug(normalized_building_name, normalized_room_number),
+        address=normalized_address,
+        checkin_time=checkin_time,
+        checkout_time=checkout_time,
+        house_rules=normalized_house_rules,
+        wifi_name=normalized_wifi_name,
+        wifi_password=normalized_wifi_password,
+        parking_instructions=normalized_parking,
+    )
+    db.session.add(flat)
+    return flat
 
 
 def build_flat_availability(flat: Flat, reference_date: date | None = None) -> FlatAvailability:
@@ -173,13 +266,13 @@ def create_reservation(
     normalized_guest_name = guest_name.strip()
 
     if not normalized_guest_name:
-        raise ValueError("Guest name is required.")
+        raise ValueError("O nome do hospede e obrigatorio.")
 
     if status not in ReservationStatus.choices():
-        raise ValueError("Invalid reservation status.")
+        raise ValueError("Status de reserva invalido.")
 
     if checkout_date <= checkin_date:
-        raise ValueError("Check-out date must be after check-in date.")
+        raise ValueError("A data de check-out deve ser posterior ao check-in.")
 
     if status != ReservationStatus.CANCELLED:
         overlapping_reservation = find_overlapping_reservation(
@@ -190,7 +283,7 @@ def create_reservation(
 
         if overlapping_reservation is not None:
             raise ValueError(
-                "This flat already has a reservation overlapping the selected period."
+                "Este flat ja possui uma reserva que conflita com o periodo informado."
             )
 
     reservation = Reservation(

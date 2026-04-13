@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{% block title %}Campina Flats{% endblock %}</title>
+    <title>{% block title %}Flats Dev{% endblock %}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}">
 </head>
@@ -18,41 +18,41 @@
                         </svg>
                     </div>
                     <div>
-                        <p class="text-[0.95rem] font-semibold tracking-[-0.02em] text-slate-950">Campina Flats</p>
-                        <p class="mt-0.5 text-xs font-medium text-slate-500">Internal operations</p>
+                        <p class="text-[0.95rem] font-semibold tracking-[-0.02em] text-slate-950">Flats Dev</p>
+                        <p class="mt-0.5 text-xs font-medium text-slate-500">Operacao interna</p>
                     </div>
                 </a>
 
                 <nav class="mt-10 space-y-2">
-                    <a href="{{ url_for('flats_dashboard') }}" class="sidebar-link {{ 'sidebar-link-active' if request.endpoint in ['flats_dashboard', 'flat_calendar'] else '' }}">
+                    <a href="{{ url_for('flats_dashboard') }}" class="sidebar-link {{ 'sidebar-link-active' if request.endpoint in ['flats_dashboard', 'flat_calendar', 'create_flat_route'] else '' }}">
                         <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75h6.5v6.5h-6.5zm10 0h6.5v6.5h-6.5zm-10 10h6.5v6.5h-6.5zm10 3.25h6.5m-6.5-3.25h6.5m-6.5 6.5h6.5" />
                         </svg>
-                        <span>Dashboard</span>
+                        <span>Flats</span>
                     </a>
                     <a href="{{ url_for('admin_dashboard') }}" class="sidebar-link {{ 'sidebar-link-active' if request.endpoint in ['admin_dashboard', 'create_checkin_link', 'link_details'] else '' }}">
                         <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5 21 3m-5.25 0H21v5.25M10.5 13.5l-7.5 7.5m0-5.25V21h5.25M7.5 7.5h9m-9 4.5h5.25" />
                         </svg>
-                        <span>Generate Check-in Link</span>
+                        <span>Links de check-in</span>
                     </a>
                     <a href="{{ url_for('reservations_dashboard') }}" class="sidebar-link {{ 'sidebar-link-active' if request.endpoint in ['reservations_dashboard', 'create_reservation_route'] else '' }}">
                         <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 3v3m7.5-3v3m-10.5 4.5h13.5M4.5 7.5h15a1.5 1.5 0 0 1 1.5 1.5v9a3 3 0 0 1-3 3h-12a3 3 0 0 1-3-3v-9A1.5 1.5 0 0 1 4.5 7.5Z" />
                         </svg>
-                        <span>Reservations</span>
+                        <span>Reservas</span>
                     </a>
                     <a href="{{ url_for('reports_dashboard') }}" class="sidebar-link {{ 'sidebar-link-active' if request.endpoint == 'reports_dashboard' else '' }}">
                         <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 19.5h15M7.5 16.5v-6m4.5 6v-10.5m4.5 10.5v-3" />
                         </svg>
-                        <span>Reports</span>
+                        <span>Relatorios</span>
                     </a>
                 </nav>
 
                 <div class="surface-card-subtle mt-auto p-5">
-                    <p class="text-sm font-semibold tracking-[-0.02em] text-slate-900">Fast guest communication</p>
-                    <p class="mt-2 text-sm leading-7 text-slate-600">Generate links, monitor reservations, and keep your team aligned in one calm, premium workspace.</p>
+                    <p class="text-sm font-semibold tracking-[-0.02em] text-slate-900">Operacao centralizada</p>
+                    <p class="mt-2 text-sm leading-7 text-slate-600">Cadastre flats, acompanhe reservas e compartilhe links de check-in em um unico painel.</p>
                 </div>
             </aside>
 
@@ -60,8 +60,8 @@
                 <header class="admin-topbar sticky top-0 z-20 border-b border-slate-200/80">
                     <div class="flex items-center justify-between px-5 py-5 sm:px-8 lg:px-10">
                         <div>
-                            <p class="text-[0.7rem] font-bold uppercase tracking-[0.28em] text-blue-600">Campina Flats</p>
-                            <h1 class="mt-1.5 text-[1.15rem] font-semibold tracking-[-0.035em] text-slate-950 sm:text-[1.3rem]">PAINEL INTERNO - CAMPINA FLATS</h1>
+                            <p class="text-[0.7rem] font-bold uppercase tracking-[0.28em] text-blue-600">Flats Dev</p>
+                            <h1 class="mt-1.5 text-[1.15rem] font-semibold tracking-[-0.035em] text-slate-950 sm:text-[1.3rem]">PAINEL INTERNO DE HOSPEDAGEM</h1>
                         </div>
                         <div class="flex items-center gap-3">
                             <button type="button" class="flex h-11 w-11 items-center justify-center rounded-full border border-slate-200/80 bg-white/90 text-slate-500 shadow-[0_10px_25px_-20px_rgba(15,23,42,0.3)] transition hover:border-blue-200 hover:text-blue-600">
@@ -71,8 +71,8 @@
                             </button>
                             <div class="flex items-center gap-3 rounded-full border border-slate-200/80 bg-white/92 px-3 py-2 shadow-[0_10px_25px_-20px_rgba(15,23,42,0.3)]">
                                 <div class="text-right">
-                                    <p class="text-sm font-semibold tracking-[-0.02em] text-slate-900">Operations User</p>
-                                    <p class="text-xs font-medium text-slate-500">Admin</p>
+                                    <p class="text-sm font-semibold tracking-[-0.02em] text-slate-900">Usuario Operacional</p>
+                                    <p class="text-xs font-medium text-slate-500">Administrador</p>
                                 </div>
                                 <div class="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-slate-900 to-slate-700 text-sm font-semibold text-white">CF</div>
                             </div>
@@ -82,10 +82,10 @@
 
                 <main class="px-5 py-8 sm:px-8 lg:px-10">
                     <nav class="mb-6 flex gap-2 overflow-x-auto pb-1 lg:hidden">
-                        <a href="{{ url_for('flats_dashboard') }}" class="mobile-nav-link {{ 'mobile-nav-link-active' if request.endpoint in ['flats_dashboard', 'flat_calendar'] else '' }}">Dashboard</a>
+                        <a href="{{ url_for('flats_dashboard') }}" class="mobile-nav-link {{ 'mobile-nav-link-active' if request.endpoint in ['flats_dashboard', 'flat_calendar', 'create_flat_route'] else '' }}">Flats</a>
                         <a href="{{ url_for('admin_dashboard') }}" class="mobile-nav-link {{ 'mobile-nav-link-active' if request.endpoint in ['admin_dashboard', 'create_checkin_link', 'link_details'] else '' }}">Check-in</a>
-                        <a href="{{ url_for('reservations_dashboard') }}" class="mobile-nav-link {{ 'mobile-nav-link-active' if request.endpoint in ['reservations_dashboard', 'create_reservation_route'] else '' }}">Reservations</a>
-                        <a href="{{ url_for('reports_dashboard') }}" class="mobile-nav-link {{ 'mobile-nav-link-active' if request.endpoint == 'reports_dashboard' else '' }}">Reports</a>
+                        <a href="{{ url_for('reservations_dashboard') }}" class="mobile-nav-link {{ 'mobile-nav-link-active' if request.endpoint in ['reservations_dashboard', 'create_reservation_route'] else '' }}">Reservas</a>
+                        <a href="{{ url_for('reports_dashboard') }}" class="mobile-nav-link {{ 'mobile-nav-link-active' if request.endpoint == 'reports_dashboard' else '' }}">Relatorios</a>
                     </nav>
     {% else %}
         <main class="public-shell min-h-screen px-4 py-8 text-slate-100 sm:px-6 lg:px-8">

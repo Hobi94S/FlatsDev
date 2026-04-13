@@ -1,58 +1,150 @@
 {% extends "base.html" %}
 
-{% block title %}Dashboard | Campina Flats{% endblock %}
+{% block title %}Flats | Flats Dev{% endblock %}
 
 {% block content %}
-<section class="surface-card p-7">
-    <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <div class="max-w-3xl">
-            <p class="kicker">Dashboard</p>
-            <h2 class="headline-xl">Flat availability overview</h2>
-            <p class="body-copy">Track occupancy, upcoming stays, and the next reservation windows across the portfolio.</p>
-        </div>
+<section class="grid gap-6 xl:grid-cols-[430px_minmax(0,1fr)]">
+    <div class="surface-card p-7">
+        <p class="kicker">Novo flat</p>
+        <h2 class="headline-lg">Adicionar flat ou quarto</h2>
+        <p class="body-copy">Cadastre um novo quarto com empreendimento, endereco e instrucoes de hospedagem.</p>
+
+        <form action="{{ url_for('create_flat_route') }}" method="post" class="mt-10 space-y-6">
+            <div>
+                <label for="building_name" class="mb-2.5 block text-sm font-semibold text-slate-700">Empreendimento</label>
+                <input id="building_name" name="building_name" type="text" required class="input-control" placeholder="Ex: Exclusive Home - Campina Grande PB">
+            </div>
+
+            <div>
+                <label for="room_number" class="mb-2.5 block text-sm font-semibold text-slate-700">Quarto ou flat</label>
+                <input id="room_number" name="room_number" type="text" required class="input-control" placeholder="Ex: 1407">
+            </div>
+
+            <div>
+                <label for="address" class="mb-2.5 block text-sm font-semibold text-slate-700">Endereco</label>
+                <textarea id="address" name="address" rows="3" required class="input-control" placeholder="Rua, numero, bairro, cidade e CEP"></textarea>
+            </div>
+
+            <div class="grid gap-5 md:grid-cols-2">
+                <div>
+                    <label for="checkin_time" class="mb-2.5 block text-sm font-semibold text-slate-700">Horario de check-in</label>
+                    <input id="checkin_time" name="checkin_time" type="time" value="14:00" required class="input-control">
+                </div>
+                <div>
+                    <label for="checkout_time" class="mb-2.5 block text-sm font-semibold text-slate-700">Horario de check-out</label>
+                    <input id="checkout_time" name="checkout_time" type="time" value="11:00" required class="input-control">
+                </div>
+            </div>
+
+            <div>
+                <label for="wifi_name" class="mb-2.5 block text-sm font-semibold text-slate-700">Nome do Wi-Fi</label>
+                <input id="wifi_name" name="wifi_name" type="text" required class="input-control" placeholder="Ex: ExclusiveHome_1407">
+            </div>
+
+            <div>
+                <label for="wifi_password" class="mb-2.5 block text-sm font-semibold text-slate-700">Senha do Wi-Fi</label>
+                <input id="wifi_password" name="wifi_password" type="text" required class="input-control" placeholder="Informe a senha">
+            </div>
+
+            <div>
+                <label for="house_rules" class="mb-2.5 block text-sm font-semibold text-slate-700">Regras da hospedagem</label>
+                <textarea id="house_rules" name="house_rules" rows="5" required class="input-control" placeholder="Liste as principais orientacoes para o hospede"></textarea>
+            </div>
+
+            <div>
+                <label for="parking_instructions" class="mb-2.5 block text-sm font-semibold text-slate-700">Estacionamento</label>
+                <textarea id="parking_instructions" name="parking_instructions" rows="4" required class="input-control" placeholder="Explique como acessar a garagem ou vaga"></textarea>
+            </div>
+
+            <button type="submit" class="btn-primary">
+                Adicionar flat
+            </button>
+        </form>
     </div>
 
-    <div class="table-shell mt-8">
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th>Flat</th>
-                    <th>Status</th>
-                    <th>Guest</th>
-                    <th>Next check-in</th>
-                    <th>Next check-out</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in availability_cards %}
-                    <tr>
-                        <td>
-                            <p class="font-semibold text-slate-900">{{ item.flat.name }}</p>
-                            <p class="mt-1 text-xs text-slate-500">{{ item.flat.address }}</p>
-                        </td>
-                        <td>
-                            <span class="chip {{ 'chip-warning' if item.status == 'Occupied' else 'chip-info' if item.status == 'Upcoming' else 'chip-success' }}">
-                                {{ item.status }}
-                            </span>
-                        </td>
-                        <td>{{ item.focus_reservation.guest_name if item.focus_reservation else "-" }}</td>
-                        <td>{{ item.next_checkin_date|date_label }}</td>
-                        <td>{{ item.next_checkout_date|date_label }}</td>
-                        <td>
-                            <div class="flex flex-wrap gap-3">
-                                <a href="{{ url_for('flat_calendar', flat_id=item.flat.id) }}" class="muted-link">Calendar</a>
-                                <a href="{{ url_for('reservations_dashboard', flat_id=item.flat.id) }}" class="text-sm font-semibold text-slate-600 transition hover:text-slate-900">Add reservation</a>
+    <div class="space-y-6">
+        <section class="surface-card p-7">
+            <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                <div class="max-w-3xl">
+                    <p class="kicker">Lista dos quartos</p>
+                    <h2 class="headline-xl">Catalogo de flats cadastrados</h2>
+                    <p class="body-copy">Visualize os empreendimentos e todos os quartos ja disponiveis no sistema.</p>
+                </div>
+            </div>
+
+            <div class="mt-8 space-y-4">
+                {% for group in grouped_flats %}
+                    <div class="surface-card-subtle p-5">
+                        <div class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                            <div>
+                                <p class="text-lg font-semibold tracking-[-0.03em] text-slate-900">{{ group.building_name }}</p>
+                                <p class="mt-1 text-sm leading-6 text-slate-500">{{ group.address }}</p>
                             </div>
-                        </td>
-                    </tr>
+                            <div class="flex flex-wrap gap-2">
+                                {% for flat in group.rooms %}
+                                    <span class="chip chip-info">{{ flat.room_label }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
                 {% else %}
-                    <tr>
-                        <td colspan="6" class="text-center text-slate-500">No flats available.</td>
-                    </tr>
+                    <p class="text-sm text-slate-500">Nenhum flat cadastrado ainda.</p>
                 {% endfor %}
-            </tbody>
-        </table>
+            </div>
+        </section>
+
+        <section class="surface-card p-7">
+            <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div>
+                    <p class="kicker">Disponibilidade</p>
+                    <h2 class="headline-lg">Status atual dos quartos</h2>
+                </div>
+                <p class="max-w-md text-sm leading-7 text-slate-500">Acompanhe ocupacao, proximas reservas e acesse o calendario de cada flat.</p>
+            </div>
+
+            <div class="table-shell mt-7">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Flat</th>
+                            <th>Status</th>
+                            <th>Hospede</th>
+                            <th>Proximo check-in</th>
+                            <th>Proximo check-out</th>
+                            <th>Acoes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in availability_cards %}
+                            <tr>
+                                <td>
+                                    <p class="font-semibold text-slate-900">{{ item.flat.display_name }}</p>
+                                    <p class="mt-1 text-xs text-slate-500">{{ item.flat.address }}</p>
+                                </td>
+                                <td>
+                                    <span class="chip {{ 'chip-warning' if item.status == 'Occupied' else 'chip-info' if item.status == 'Upcoming' else 'chip-success' }}">
+                                        {{ item.status|status_label }}
+                                    </span>
+                                </td>
+                                <td>{{ item.focus_reservation.guest_name if item.focus_reservation else "-" }}</td>
+                                <td>{{ item.next_checkin_date|date_label }}</td>
+                                <td>{{ item.next_checkout_date|date_label }}</td>
+                                <td>
+                                    <div class="flex flex-wrap gap-3">
+                                        <a href="{{ url_for('flat_calendar', flat_id=item.flat.id) }}" class="muted-link">Calendario</a>
+                                        <a href="{{ url_for('reservations_dashboard', flat_id=item.flat.id) }}" class="text-sm font-semibold text-slate-600 transition hover:text-slate-900">Adicionar reserva</a>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="6" class="text-center text-slate-500">Nenhum flat disponivel.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
     </div>
 </section>
 {% endblock %}

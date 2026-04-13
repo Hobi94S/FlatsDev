@@ -30,16 +30,32 @@ def create_app() -> Flask:
 
 
 def register_template_filters(app: Flask) -> None:
+    status_labels = {
+        "booked": "Reservada",
+        "completed": "Concluida",
+        "cancelled": "Cancelada",
+        "Occupied": "Ocupado",
+        "Upcoming": "Proxima",
+        "Available": "Disponivel",
+    }
+
     @app.template_filter("date_label")
     def date_label(value: date | None) -> str:
         if value is None:
             return "-"
 
-        return value.strftime("%Y-%m-%d")
+        return value.strftime("%d/%m/%Y")
 
     @app.template_filter("datetime_label")
     def datetime_label(value: datetime | None) -> str:
         if value is None:
             return "-"
 
-        return value.strftime("%Y-%m-%d %H:%M")
+        return value.strftime("%d/%m/%Y %H:%M")
+
+    @app.template_filter("status_label")
+    def status_label(value: str | None) -> str:
+        if value is None:
+            return "-"
+
+        return status_labels.get(value, value)

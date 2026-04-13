@@ -1,15 +1,15 @@
 {% extends "base.html" %}
 
-{% block title %}Generate Check-in Link | Campina Flats{% endblock %}
+{% block title %}Links de Check-in | Flats Dev{% endblock %}
 
 {% block content %}
 <section class="mb-8">
     <div class="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
         <div class="max-w-3xl">
-            <p class="kicker">Generate Check-in Link</p>
-            <h2 class="headline-xl">Create a polished guest experience in one step</h2>
+            <p class="kicker">Check-in</p>
+            <h2 class="headline-xl">Gere links a partir de reservas ativas</h2>
             <p class="body-copy">
-                Fill in the stay details, review the mobile preview in real time, and copy a clean public link without leaving the dashboard.
+                Selecione a reserva, confira a visualizacao do hospede e copie o link publico sem precisar montar os dados manualmente.
             </p>
         </div>
         <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -18,15 +18,15 @@
                 <p class="metric-value">{{ summary.total }}</p>
             </div>
             <div class="metric-card p-5">
-                <p class="metric-label">Available</p>
+                <p class="metric-label">Disponiveis</p>
                 <p class="metric-value text-emerald-600">{{ summary.available }}</p>
             </div>
             <div class="metric-card p-5">
-                <p class="metric-label">Occupied</p>
+                <p class="metric-label">Ocupados</p>
                 <p class="metric-value text-orange-500">{{ summary.occupied }}</p>
             </div>
             <div class="metric-card p-5">
-                <p class="metric-label">Upcoming</p>
+                <p class="metric-label">Proximos</p>
                 <p class="metric-value text-blue-600">{{ summary.upcoming }}</p>
             </div>
         </div>
@@ -37,71 +37,58 @@
     <div class="surface-card p-7">
         <div class="flex items-start justify-between gap-4">
             <div class="max-w-xl">
-                <p class="kicker">Form</p>
-                <h3 class="headline-lg">Generate New Check-in Link</h3>
+                <p class="kicker">Formulario</p>
+                <h3 class="headline-lg">Gerar novo link de check-in</h3>
                 <p class="body-copy">
-                    Designed for fast manual communication through WhatsApp, Booking, Airbnb, or Instagram.
+                    O link agora e vinculado diretamente a uma reserva, garantindo hospede, datas e flat corretos.
                 </p>
             </div>
-            <span class="eyebrow-pill">MVP Ready</span>
+            <span class="eyebrow-pill">Baseado em reserva</span>
         </div>
 
         <form id="checkin-form" action="{{ url_for('create_checkin_link') }}" method="post" class="mt-10 space-y-7">
-            <div class="grid gap-6 md:grid-cols-2">
-                <div class="md:col-span-2">
-                    <label for="flat_id" class="mb-2.5 block text-sm font-semibold text-slate-700">Flat</label>
-                    <select id="flat_id" name="flat_id" class="input-control" required>
-                        <option value="">Select a flat</option>
-                        {% for flat in flats %}
-                            <option value="{{ flat.id }}">{{ flat.name }} - {{ flat.address }}</option>
+            <div class="grid gap-6">
+                <div>
+                    <label for="reservation_id" class="mb-2.5 block text-sm font-semibold text-slate-700">Reserva</label>
+                    <select id="reservation_id" name="reservation_id" class="input-control" required>
+                        <option value="">Selecione uma reserva</option>
+                        {% for reservation in linkable_reservations %}
+                            <option value="{{ reservation.id }}">
+                                {{ reservation.guest_name }} - {{ reservation.flat.display_name }} - {{ reservation.checkin_date|date_label }} a {{ reservation.checkout_date|date_label }}
+                            </option>
                         {% endfor %}
                     </select>
                 </div>
 
-                <div class="md:col-span-2">
-                    <label for="guest_name" class="mb-2.5 block text-sm font-semibold text-slate-700">Guest name</label>
-                    <input id="guest_name" name="guest_name" type="text" placeholder="Ex: Ana Silva" class="input-control">
-                </div>
-
                 <div>
-                    <label for="checkin_date" class="mb-2.5 block text-sm font-semibold text-slate-700">Check-in date</label>
-                    <input id="checkin_date" name="checkin_date" type="date" class="input-control">
-                </div>
-
-                <div>
-                    <label for="checkout_date" class="mb-2.5 block text-sm font-semibold text-slate-700">Check-out date</label>
-                    <input id="checkout_date" name="checkout_date" type="date" class="input-control">
-                </div>
-
-                <div class="md:col-span-2">
-                    <label for="platform" class="mb-2.5 block text-sm font-semibold text-slate-700">Platform</label>
+                    <label for="platform" class="mb-2.5 block text-sm font-semibold text-slate-700">Canal de envio</label>
                     <select id="platform" name="platform" class="input-control">
+                        <option value="WhatsApp">WhatsApp</option>
                         <option value="Booking">Booking</option>
                         <option value="Airbnb">Airbnb</option>
-                        <option value="WhatsApp">WhatsApp</option>
                         <option value="Instagram">Instagram</option>
                     </select>
                 </div>
             </div>
 
             <button type="submit" class="btn-primary">
-                Generate Check-in Link
+                Gerar link de check-in
             </button>
         </form>
 
         <div class="surface-card-subtle mt-8 p-5">
             <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                 <div class="min-w-0 flex-1">
-                    <label for="generated-link" class="mb-2.5 block text-sm font-semibold text-slate-700">Generated link</label>
-                    <input id="generated-link" type="text" readonly value="{{ generated_link_url or '' }}" placeholder="Your generated check-in link will appear here" class="input-control bg-white pr-12 font-mono text-sm text-slate-700">
+                    <label for="generated-link" class="mb-2.5 block text-sm font-semibold text-slate-700">Link gerado</label>
+                    <input id="generated-link" type="text" readonly value="{{ generated_link_url or '' }}" placeholder="O link publico aparecera aqui apos a geracao" class="input-control bg-white pr-12 font-mono text-sm text-slate-700">
                 </div>
                 <div class="flex gap-3">
                     <button type="button" id="copy-link-button" class="btn-secondary">
-                        Copy
+                        Copiar
                     </button>
                     {% if generated_link_url %}
                         <a href="{{ generated_link_url }}" target="_blank" rel="noreferrer" class="btn-secondary">
-                            Open
+                            Abrir
                         </a>
                     {% endif %}
                 </div>
@@ -112,57 +99,57 @@
     <div class="surface-card p-7">
         <div class="flex items-start justify-between gap-4">
             <div class="max-w-xl">
-                <p class="kicker">Preview</p>
-                <h3 class="headline-lg">Guest page simulation</h3>
+                <p class="kicker">Visualizacao</p>
+                <h3 class="headline-lg">Previa da pagina do hospede</h3>
                 <p class="body-copy">
-                    A live mobile view helps the team validate what the guest sees before sharing the link.
+                    Confira as informacoes do flat e da reserva antes de compartilhar o link.
                 </p>
             </div>
-            <span class="eyebrow-pill">Mobile View</span>
+            <span class="eyebrow-pill">Mobile</span>
         </div>
 
         <div class="mt-10 flex justify-center">
             <div class="preview-device">
                 <div class="preview-screen">
                     <div class="preview-hero px-6 pb-7 pt-8 text-white">
-                        <p class="text-[0.68rem] font-bold uppercase tracking-[0.32em] text-blue-100">Campina Flats</p>
-                        <h4 id="preview-flat-name" class="mt-3 text-[1.85rem] font-semibold tracking-[-0.04em]">Select a flat</h4>
-                        <p id="preview-platform" class="mt-2 text-sm text-blue-100">Sharing via Booking</p>
+                        <p class="text-[0.68rem] font-bold uppercase tracking-[0.32em] text-blue-100">Flats Dev</p>
+                        <h4 id="preview-flat-name" class="mt-3 text-[1.85rem] font-semibold tracking-[-0.04em]">Selecione uma reserva</h4>
+                        <p id="preview-platform" class="mt-2 text-sm text-blue-100">Compartilhamento via WhatsApp</p>
                     </div>
 
                     <div class="space-y-5 p-6">
                         <div>
-                            <p class="text-[0.68rem] font-bold uppercase tracking-[0.22em] text-slate-400">Guest</p>
-                            <p id="preview-guest-name" class="mt-2 text-lg font-semibold tracking-[-0.03em] text-slate-900">Welcome, guest</p>
-                            <p class="mt-2 text-sm leading-7 text-slate-600">Everything your guest needs to check in with confidence is shown below.</p>
+                            <p class="text-[0.68rem] font-bold uppercase tracking-[0.22em] text-slate-400">Hospede</p>
+                            <p id="preview-guest-name" class="mt-2 text-lg font-semibold tracking-[-0.03em] text-slate-900">Bem-vindo</p>
+                            <p class="mt-2 text-sm leading-7 text-slate-600">Todas as instrucoes da reserva serao apresentadas ao hospede nesta pagina.</p>
                         </div>
 
                         <div class="grid grid-cols-2 gap-3">
                             <div class="info-tile">
                                 <p class="text-[0.68rem] font-bold uppercase tracking-[0.22em] text-slate-400">Check-in</p>
-                                <p id="preview-checkin-time" class="mt-2 text-lg font-semibold tracking-[-0.03em] text-slate-900">14:00</p>
-                                <p id="preview-checkin-date" class="mt-1.5 text-xs text-slate-500">Date not selected</p>
+                                <p id="preview-checkin-time" class="mt-2 text-lg font-semibold tracking-[-0.03em] text-slate-900">--:--</p>
+                                <p id="preview-checkin-date" class="mt-1.5 text-xs text-slate-500">Data nao selecionada</p>
                             </div>
                             <div class="info-tile">
                                 <p class="text-[0.68rem] font-bold uppercase tracking-[0.22em] text-slate-400">Check-out</p>
-                                <p id="preview-checkout-time" class="mt-2 text-lg font-semibold tracking-[-0.03em] text-slate-900">11:00</p>
-                                <p id="preview-checkout-date" class="mt-1.5 text-xs text-slate-500">Date not selected</p>
+                                <p id="preview-checkout-time" class="mt-2 text-lg font-semibold tracking-[-0.03em] text-slate-900">--:--</p>
+                                <p id="preview-checkout-date" class="mt-1.5 text-xs text-slate-500">Data nao selecionada</p>
                             </div>
                         </div>
 
                         <div class="info-tile">
                             <p class="text-[0.68rem] font-bold uppercase tracking-[0.22em] text-slate-400">Wi-Fi</p>
-                            <p id="preview-wifi-name" class="mt-2 text-sm font-semibold text-slate-900">CampinaFlats</p>
-                            <p id="preview-wifi-password" class="mt-1.5 text-sm text-slate-600">Password will appear here</p>
+                            <p id="preview-wifi-name" class="mt-2 text-sm font-semibold text-slate-900">Selecione uma reserva</p>
+                            <p id="preview-wifi-password" class="mt-1.5 text-sm text-slate-600">A senha aparecera aqui</p>
                         </div>
 
                         <div class="info-tile">
-                            <p class="text-[0.68rem] font-bold uppercase tracking-[0.22em] text-slate-400">House rules</p>
-                            <div id="preview-house-rules" class="mt-3 whitespace-pre-line text-sm leading-7 text-slate-600">Select a flat to preview the rules shared with the guest.</div>
+                            <p class="text-[0.68rem] font-bold uppercase tracking-[0.22em] text-slate-400">Regras da hospedagem</p>
+                            <div id="preview-house-rules" class="mt-3 whitespace-pre-line text-sm leading-7 text-slate-600">Escolha uma reserva para visualizar as orientacoes enviadas ao hospede.</div>
                         </div>
 
                         <button type="button" class="btn-primary w-full">
-                            I have read and agree
+                            Li e concordo
                         </button>
                     </div>
                 </div>
@@ -174,10 +161,10 @@
 <section class="surface-card mt-6 p-7">
     <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
-            <p class="kicker">Recent activity</p>
-            <h3 class="headline-lg">Latest generated links</h3>
+            <p class="kicker">Atividade recente</p>
+            <h3 class="headline-lg">Ultimos links gerados</h3>
         </div>
-        <p class="max-w-xl text-sm leading-7 text-slate-500">Use this list to reopen links, track views, and confirm guest acknowledgments.</p>
+        <p class="max-w-xl text-sm leading-7 text-slate-500">Use esta lista para reabrir links, acompanhar visualizacoes e validar confirmacoes.</p>
     </div>
 
     <div class="table-shell mt-7">
@@ -185,40 +172,40 @@
             <thead>
                 <tr>
                     <th>Flat</th>
-                    <th>Guest</th>
+                    <th>Hospede</th>
                     <th>Token</th>
-                    <th>Views</th>
+                    <th>Visualizacoes</th>
                     <th>Status</th>
-                    <th>Actions</th>
+                    <th>Acoes</th>
                 </tr>
             </thead>
             <tbody>
                 {% for link in recent_links %}
                     <tr>
                         <td>
-                            <p class="font-semibold text-slate-900">{{ link.flat.name }}</p>
+                            <p class="font-semibold text-slate-900">{{ link.flat.display_name }}</p>
                             <p class="mt-1 text-xs text-slate-500">{{ link.created_at|datetime_label }}</p>
                         </td>
-                        <td>{{ link.guest_name or "Not informed" }}</td>
+                        <td>{{ link.guest_name or "Nao informado" }}</td>
                         <td class="font-mono text-xs text-slate-600">{{ link.token }}</td>
                         <td>{{ link.view_count }}</td>
                         <td>
                             {% if link.confirmation %}
-                                <span class="chip chip-success">Confirmed</span>
+                                <span class="chip chip-success">Confirmado</span>
                             {% else %}
-                                <span class="chip chip-warning">Pending</span>
+                                <span class="chip chip-warning">Pendente</span>
                             {% endif %}
                         </td>
                         <td>
                             <div class="flex flex-wrap gap-3">
-                                <a href="{{ url_for('link_details', link_id=link.id) }}" class="muted-link">Details</a>
-                                <a href="{{ url_for('public_checkin', token=link.token) }}" target="_blank" rel="noreferrer" class="text-sm font-semibold text-slate-600 transition hover:text-slate-900">Open</a>
+                                <a href="{{ url_for('link_details', link_id=link.id) }}" class="muted-link">Detalhes</a>
+                                <a href="{{ url_for('public_checkin', token=link.token) }}" target="_blank" rel="noreferrer" class="text-sm font-semibold text-slate-600 transition hover:text-slate-900">Abrir</a>
                             </div>
                         </td>
                     </tr>
                 {% else %}
                     <tr>
-                        <td colspan="6" class="text-center text-slate-500">No links generated yet.</td>
+                        <td colspan="6" class="text-center text-slate-500">Nenhum link gerado ainda.</td>
                     </tr>
                 {% endfor %}
             </tbody>
@@ -230,7 +217,7 @@
     const flatCatalog = {
         {% for flat in flats %}
             "{{ flat.id }}": {
-                name: {{ flat.name|tojson }},
+                name: {{ flat.display_name|tojson }},
                 checkinTime: {{ flat.checkin_time|tojson }},
                 checkoutTime: {{ flat.checkout_time|tojson }},
                 wifiName: {{ flat.wifi_name|tojson }},
@@ -240,10 +227,9 @@
         {% endfor %}
     };
 
-    const flatField = document.getElementById("flat_id");
-    const guestField = document.getElementById("guest_name");
-    const checkinDateField = document.getElementById("checkin_date");
-    const checkoutDateField = document.getElementById("checkout_date");
+    const reservationsCatalog = {{ reservations_catalog|tojson }};
+
+    const reservationField = document.getElementById("reservation_id");
     const platformField = document.getElementById("platform");
     const generatedLinkField = document.getElementById("generated-link");
     const copyLinkButton = document.getElementById("copy-link-button");
@@ -261,31 +247,31 @@
 
     function formatDate(rawValue) {
         if (!rawValue) {
-            return "Date not selected";
+            return "Data nao selecionada";
         }
 
         const value = new Date(`${rawValue}T00:00:00`);
-        return value.toLocaleDateString("en-US", {
-            month: "short",
-            day: "numeric",
+        return value.toLocaleDateString("pt-BR", {
+            day: "2-digit",
+            month: "2-digit",
             year: "numeric"
         });
     }
 
     function renderPreview() {
-        const selectedFlat = flatCatalog[flatField.value] || null;
-        const guestName = guestField.value.trim() || "guest";
+        const reservation = reservationsCatalog[reservationField.value] || null;
+        const selectedFlat = reservation ? flatCatalog[reservation.flat_id] : null;
 
-        previewFlatName.textContent = selectedFlat ? selectedFlat.name : "Select a flat";
-        previewGuestName.textContent = `Welcome, ${guestName}`;
+        previewFlatName.textContent = selectedFlat ? selectedFlat.name : "Selecione uma reserva";
+        previewGuestName.textContent = reservation ? `Bem-vindo, ${reservation.guest_name}` : "Bem-vindo";
         previewCheckinTime.textContent = selectedFlat ? selectedFlat.checkinTime : "--:--";
         previewCheckoutTime.textContent = selectedFlat ? selectedFlat.checkoutTime : "--:--";
-        previewCheckinDate.textContent = formatDate(checkinDateField.value);
-        previewCheckoutDate.textContent = formatDate(checkoutDateField.value);
-        previewWifiName.textContent = selectedFlat ? selectedFlat.wifiName : "CampinaFlats";
-        previewWifiPassword.textContent = selectedFlat ? `Password: ${selectedFlat.wifiPassword}` : "Password will appear here";
-        previewHouseRules.textContent = selectedFlat ? selectedFlat.houseRules : "Select a flat to preview the rules shared with the guest.";
-        previewPlatform.textContent = `Sharing via ${platformField.value || "Booking"}`;
+        previewCheckinDate.textContent = formatDate(reservation ? reservation.checkin_date : null);
+        previewCheckoutDate.textContent = formatDate(reservation ? reservation.checkout_date : null);
+        previewWifiName.textContent = selectedFlat ? selectedFlat.wifiName : "Selecione uma reserva";
+        previewWifiPassword.textContent = selectedFlat ? `Senha: ${selectedFlat.wifiPassword}` : "A senha aparecera aqui";
+        previewHouseRules.textContent = selectedFlat ? selectedFlat.houseRules : "Escolha uma reserva para visualizar as orientacoes enviadas ao hospede.";
+        previewPlatform.textContent = `Compartilhamento via ${platformField.value || "WhatsApp"}`;
     }
 
     async function copyGeneratedLink() {
@@ -294,13 +280,13 @@
         }
 
         await navigator.clipboard.writeText(generatedLinkField.value);
-        copyLinkButton.textContent = "Copied";
+        copyLinkButton.textContent = "Copiado";
         window.setTimeout(() => {
-            copyLinkButton.textContent = "Copy";
+            copyLinkButton.textContent = "Copiar";
         }, 1500);
     }
 
-    [flatField, guestField, checkinDateField, checkoutDateField, platformField].forEach((field) => {
+    [reservationField, platformField].forEach((field) => {
         field.addEventListener("input", renderPreview);
         field.addEventListener("change", renderPreview);
     });

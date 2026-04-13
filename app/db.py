@@ -1,60 +1,101 @@
 from __future__ import annotations
 
-from datetime import date, timedelta
-
 from flask import Flask
-from sqlalchemy import func, inspect, select, text
+from sqlalchemy import inspect, select, text
 
 from .extensions import db
-from .models import Flat, Reservation, ReservationStatus
+from .models import CheckinLink, Flat, Reservation
+from .services import generate_unique_flat_slug
 
 
 SEED_FLATS: list[dict[str, str]] = [
     {
-        "name": "Campina Standard 101",
-        "slug": "campina-standard-101",
-        "address": "Rua das Flores, 101 - Campina Grande, PB",
-        "checkin_time": "14:00",
-        "checkout_time": "11:00",
-        "house_rules": (
-            "1. No smoking inside the flat.\n"
-            "2. Quiet hours from 22:00 to 08:00.\n"
-            "3. Please dispose of trash before check-out."
-        ),
-        "wifi_name": "CampinaFlats_101",
-        "wifi_password": "campina101",
-        "parking_instructions": (
-            "Use the parking space labeled 101. "
-            "Please keep the access gate closed after entering or leaving."
-        ),
+        "building_name": "Exclusive Home - Campina Grande PB",
+        "room_number": "1407",
+        "address": "Vila Nova da Rainha, 169 - Centro, Campina Grande - PB, 58400-220",
     },
     {
-        "name": "Campina Premium 202",
-        "slug": "campina-premium-202",
-        "address": "Av. Central, 202 - Campina Grande, PB",
-        "checkin_time": "15:00",
-        "checkout_time": "11:00",
-        "house_rules": (
-            "1. No parties or events.\n"
-            "2. Respect condominium common areas.\n"
-            "3. Inform us immediately about any issue in the flat."
-        ),
-        "wifi_name": "CampinaFlats_202",
-        "wifi_password": "campina202",
-        "parking_instructions": (
-            "Visitor access is through Gate B. "
-            "Use parking spot P-202 and identify yourself at the concierge if requested."
-        ),
+        "building_name": "Exclusive Home - Campina Grande PB",
+        "room_number": "704",
+        "address": "Vila Nova da Rainha, 169 - Centro, Campina Grande - PB, 58400-220",
+    },
+    {
+        "building_name": "Exclusive Home - Campina Grande PB",
+        "room_number": "404",
+        "address": "Vila Nova da Rainha, 169 - Centro, Campina Grande - PB, 58400-220",
+    },
+    {
+        "building_name": "Sirius - Campina Grande PB",
+        "room_number": "107",
+        "address": "R. Olegario Mariano, 270 - Catole, Campina Grande - PB, 58410-124",
+    },
+    {
+        "building_name": "Sirius - Campina Grande PB",
+        "room_number": "206",
+        "address": "R. Olegario Mariano, 270 - Catole, Campina Grande - PB, 58410-124",
+    },
+    {
+        "building_name": "Sirius - Campina Grande PB",
+        "room_number": "207",
+        "address": "R. Olegario Mariano, 270 - Catole, Campina Grande - PB, 58410-124",
+    },
+    {
+        "building_name": "Boulevard Plaza Flat",
+        "room_number": "106",
+        "address": "Rua Malaquias de Souza do O, 17 - Mirante",
+    },
+    {
+        "building_name": "Boulevard Plaza Flat",
+        "room_number": "301",
+        "address": "Rua Malaquias de Souza do O, 17 - Mirante",
+    },
+    {
+        "building_name": "Boulevard Plaza Flat",
+        "room_number": "302",
+        "address": "Rua Malaquias de Souza do O, 17 - Mirante",
+    },
+    {
+        "building_name": "Boulevard Plaza Flat",
+        "room_number": "306",
+        "address": "Rua Malaquias de Souza do O, 17 - Mirante",
+    },
+    {
+        "building_name": "Boulevard Plaza Flat",
+        "room_number": "604",
+        "address": "Rua Malaquias de Souza do O, 17 - Mirante",
+    },
+    {
+        "building_name": "Boulevard Plaza Flat",
+        "room_number": "605",
+        "address": "Rua Malaquias de Souza do O, 17 - Mirante",
+    },
+    {
+        "building_name": "Beach Haus - Joao Pessoa PB",
+        "room_number": "222",
+        "address": "Av. Gov. Argemiro de Figueiredo, 280 - Jardim Oceania, Joao Pessoa - PB, 58037-030",
     },
 ]
+
+DEFAULT_CHECKIN_TIME = "14:00"
+DEFAULT_CHECKOUT_TIME = "11:00"
+DEFAULT_HOUSE_RULES = (
+    "1. Nao fumar dentro do flat.\n"
+    "2. Respeitar o horario de silencio das 22:00 as 08:00.\n"
+    "3. Descartar o lixo antes do check-out.\n"
+    "4. Informe imediatamente qualquer problema na hospedagem."
+)
+DEFAULT_WIFI_NAME = "FlatsDev"
+DEFAULT_WIFI_PASSWORD = "alterar-senha"
+DEFAULT_PARKING = "Consulte a recepcao ou a administracao para receber a vaga correta do quarto."
+LEGACY_SEED_SLUGS = {"campina-standard-101", "campina-premium-202"}
 
 
 def initialize_database(app: Flask) -> None:
     with app.app_context():
         db.create_all()
         apply_legacy_migrations()
+        reset_legacy_demo_data_if_needed()
         seed_flats()
-        seed_reservations()
         db.session.commit()
 
 
@@ -62,61 +103,112 @@ def apply_legacy_migrations() -> None:
     inspector = inspect(db.engine)
     table_names = set(inspector.get_table_names())
 
-    if "checkin_links" not in table_names:
-        return
+    if "flats" in table_names:
+        existing_columns = {column["name"] for column in inspector.get_columns("flats")}
+        missing_flat_columns = {
+            "building_name": "ALTER TABLE flats ADD COLUMN building_name VARCHAR(120)",
+            "room_number": "ALTER TABLE flats ADD COLUMN room_number VARCHAR(40)",
+        }
 
-    existing_columns = {
-        column["name"] for column in inspector.get_columns("checkin_links")
-    }
-    missing_columns = {
-        "reservation_id": "ALTER TABLE checkin_links ADD COLUMN reservation_id INTEGER REFERENCES reservations (id)",
-        "view_count": "ALTER TABLE checkin_links ADD COLUMN view_count INTEGER NOT NULL DEFAULT 0",
-        "last_viewed": "ALTER TABLE checkin_links ADD COLUMN last_viewed DATETIME",
-    }
+        for column_name, ddl in missing_flat_columns.items():
+            if column_name not in existing_columns:
+                db.session.execute(text(ddl))
 
-    for column_name, ddl in missing_columns.items():
-        if column_name not in existing_columns:
-            db.session.execute(text(ddl))
+        backfill_flat_structure()
+
+    if "checkin_links" in table_names:
+        existing_columns = {
+            column["name"] for column in inspector.get_columns("checkin_links")
+        }
+        missing_link_columns = {
+            "reservation_id": "ALTER TABLE checkin_links ADD COLUMN reservation_id INTEGER REFERENCES reservations (id)",
+            "view_count": "ALTER TABLE checkin_links ADD COLUMN view_count INTEGER NOT NULL DEFAULT 0",
+            "last_viewed": "ALTER TABLE checkin_links ADD COLUMN last_viewed DATETIME",
+        }
+
+        for column_name, ddl in missing_link_columns.items():
+            if column_name not in existing_columns:
+                db.session.execute(text(ddl))
 
     db.session.commit()
 
 
-def seed_flats() -> None:
-    flat_count = db.session.scalar(select(func.count(Flat.id))) or 0
-
-    if flat_count > 0:
-        return
-
-    db.session.add_all(Flat(**flat_data) for flat_data in SEED_FLATS)
-
-
-def seed_reservations() -> None:
-    reservation_count = db.session.scalar(select(func.count(Reservation.id))) or 0
-
-    if reservation_count > 0:
-        return
-
+def backfill_flat_structure() -> None:
     flats = db.session.scalars(select(Flat).order_by(Flat.id)).all()
 
-    if len(flats) < 2:
+    for flat in flats:
+        if flat.building_name and flat.room_number:
+            if flat.name != f"{flat.building_name} - {flat.room_number}":
+                flat.name = f"{flat.building_name} - {flat.room_number}"
+            continue
+
+        if " - " in flat.name:
+            building_name, room_number = flat.name.rsplit(" - ", 1)
+            flat.building_name = building_name.strip()
+            flat.room_number = room_number.strip()
+        else:
+            flat.building_name = flat.name.strip()
+            flat.room_number = flat.room_number or "Sem numero"
+
+        flat.name = f"{flat.building_name} - {flat.room_number}"
+
+
+def reset_legacy_demo_data_if_needed() -> None:
+    flats = db.session.scalars(select(Flat).order_by(Flat.id)).all()
+
+    if not flats:
         return
 
-    today = date.today()
-    db.session.add_all(
-        [
-            Reservation(
-                flat_id=flats[0].id,
-                guest_name="Marina Costa",
-                checkin_date=today,
-                checkout_date=today + timedelta(days=3),
-                status=ReservationStatus.BOOKED,
-            ),
-            Reservation(
-                flat_id=flats[1].id,
-                guest_name="Carlos Lima",
-                checkin_date=today + timedelta(days=5),
-                checkout_date=today + timedelta(days=9),
-                status=ReservationStatus.BOOKED,
-            ),
-        ]
+    current_slugs = {flat.slug for flat in flats}
+    is_demo_catalog = current_slugs.issubset(LEGACY_SEED_SLUGS)
+    has_links = db.session.scalar(select(CheckinLink.id).limit(1)) is not None
+    demo_guest_names = {"Marina Costa", "Carlos Lima"}
+    reservations = db.session.scalars(select(Reservation)).all()
+    only_demo_reservations = {reservation.guest_name for reservation in reservations}.issubset(
+        demo_guest_names
     )
+
+    if not is_demo_catalog or has_links or not only_demo_reservations:
+        return
+
+    db.session.execute(text("DELETE FROM confirmations"))
+    db.session.execute(text("DELETE FROM checkin_links"))
+    db.session.execute(text("DELETE FROM reservations"))
+    db.session.execute(text("DELETE FROM flats"))
+    db.session.commit()
+
+
+def seed_flats() -> None:
+    existing_pairs = {
+        ((flat.building_name or "").strip(), (flat.room_number or "").strip()): flat
+        for flat in db.session.scalars(select(Flat)).all()
+    }
+
+    for flat_data in SEED_FLATS:
+        key = (flat_data["building_name"], flat_data["room_number"])
+        if key in existing_pairs:
+            flat = existing_pairs[key]
+            flat.building_name = flat_data["building_name"]
+            flat.room_number = flat_data["room_number"]
+            flat.name = f"{flat_data['building_name']} - {flat_data['room_number']}"
+            flat.address = flat_data["address"]
+            continue
+
+        db.session.add(
+            Flat(
+                building_name=flat_data["building_name"],
+                room_number=flat_data["room_number"],
+                name=f"{flat_data['building_name']} - {flat_data['room_number']}",
+                slug=generate_unique_flat_slug(
+                    flat_data["building_name"],
+                    flat_data["room_number"],
+                ),
+                address=flat_data["address"],
+                checkin_time=DEFAULT_CHECKIN_TIME,
+                checkout_time=DEFAULT_CHECKOUT_TIME,
+                house_rules=DEFAULT_HOUSE_RULES,
+                wifi_name=DEFAULT_WIFI_NAME,
+                wifi_password=DEFAULT_WIFI_PASSWORD,
+                parking_instructions=DEFAULT_PARKING,
+            )
+        )

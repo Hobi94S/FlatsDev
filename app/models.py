@@ -26,6 +26,8 @@ class Flat(db.Model):
     __tablename__ = "flats"
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    building_name: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    room_number: Mapped[str | None] = mapped_column(String(40), nullable=True)
     name: Mapped[str] = mapped_column(String(120), nullable=False)
     slug: Mapped[str] = mapped_column(String(120), nullable=False, unique=True)
     address: Mapped[str] = mapped_column(String(255), nullable=False)
@@ -53,6 +55,17 @@ class Flat(db.Model):
         order_by="Reservation.checkin_date",
     )
     checkin_links: Mapped[list["CheckinLink"]] = relationship(back_populates="flat")
+
+    @property
+    def display_name(self) -> str:
+        if self.building_name and self.room_number:
+            return f"{self.building_name} - {self.room_number}"
+
+        return self.name
+
+    @property
+    def room_label(self) -> str:
+        return self.room_number or self.name
 
 
 class Reservation(db.Model):

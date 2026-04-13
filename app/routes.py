@@ -12,6 +12,7 @@ from .services import (
     build_flat_availability,
     build_flat_calendar,
     build_flats_dashboard,
+    create_flat,
     create_reservation,
     generate_token,
     mark_link_viewed,
@@ -49,6 +50,15 @@ def register_routes(app: Flask) -> None:
             .where(Reservation.checkout_date >= date.today())
             .order_by(Reservation.checkin_date, Reservation.guest_name)
         ).all()
+        reservations_catalog = {
+            reservation.id: {
+                "guest_name": reservation.guest_name,
+                "checkin_date": reservation.checkin_date.isoformat(),
+                "checkout_date": reservation.checkout_date.isoformat(),
+                "flat_id": reservation.flat_id,
+            }
+            for reservation in linkable_reservations
+        }
         summary = {
             "occupied": sum(card.status == "Occupied" for card in availability_cards),
             "upcoming": sum(card.status == "Upcoming" for card in availability_cards),
@@ -73,48 +83,39 @@ def register_routes(app: Flask) -> None:
             recent_links=recent_links,
             availability_cards=availability_cards,
             linkable_reservations=linkable_reservations,
+            reservations_catalog=reservations_catalog,
             summary=summary,
             generated_link_url=generated_link_url,
         )
 
     @app.post("/admin/links")
     def create_checkin_link():
-        flat_id = request.form.get("flat_id", type=int)
         reservation_id = request.form.get("reservation_id", type=int)
-        guest_name = (request.form.get("guest_name") or "").strip() or None
-
-        reservation = None
-        if reservation_id:
-            reservation = db.session.get(Reservation, reservation_id)
-
-            if reservation is None:
-                abort(404)
-
-            flat_id = reservation.flat_id
-            guest_name = guest_name or reservation.guest_name
-
-        if not flat_id:
-            flash(
-                "Please select a flat or choose a reservation before generating the link.",
-                "error",
-            )
+        if not reservation_id:
+            flash("Selecione uma reserva para gerar o link de check-in.", "error")
             return redirect(url_for("admin_dashboard"))
 
-        flat = db.session.get(Flat, flat_id)
-
-        if flat is None:
+        reservation = db.session.scalar(
+            select(Reservation)
+            .options(joinedload(Reservation.flat))
+            .where(Reservation.id == reservation_id)
+        )
+        if reservation is None:
             abort(404)
 
         checkin_link = CheckinLink(
             token=generate_token(),
-            flat_id=flat_id,
-            guest_name=guest_name,
+            flat_id=reservation.flat_id,
+            guest_name=reservation.guest_name,
             reservation=reservation,
         )
         db.session.add(checkin_link)
         db.session.commit()
 
-        flash(f"Check-in link created for {flat.name}.", "success")
+        flash(
+            f"Link de check-in criado para {reservation.flat.display_name}.",
+            "success",
+        )
         return redirect(url_for("admin_dashboard", generated_link_id=checkin_link.id))
 
     @app.get("/admin/links/<int:link_id>")
@@ -146,8 +147,47 @@ def register_routes(app: Flask) -> None:
             .order_by(Flat.name)
         ).all()
         availability_cards = build_flats_dashboard(flats)
+        grouped_flats: list[dict[str, object]] = []
+        for flat in flats:
+            if grouped_flats and grouped_flats[-1]["building_name"] == flat.building_name:
+                grouped_flats[-1]["rooms"].append(flat)
+                continue
 
-        return render_template("flats.html", availability_cards=availability_cards)
+            grouped_flats.append(
+                {
+                    "building_name": flat.building_name or flat.name,
+                    "address": flat.address,
+                    "rooms": [flat],
+                }
+            )
+
+        return render_template(
+            "flats.html",
+            availability_cards=availability_cards,
+            grouped_flats=grouped_flats,
+        )
+
+    @app.post("/admin/flats")
+    def create_flat_route():
+        try:
+            flat = create_flat(
+                building_name=request.form.get("building_name", ""),
+                room_number=request.form.get("room_number", ""),
+                address=request.form.get("address", ""),
+                checkin_time=request.form.get("checkin_time", ""),
+                checkout_time=request.form.get("checkout_time", ""),
+                house_rules=request.form.get("house_rules", ""),
+                wifi_name=request.form.get("wifi_name", ""),
+                wifi_password=request.form.get("wifi_password", ""),
+                parking_instructions=request.form.get("parking_instructions", ""),
+            )
+        except ValueError as error:
+            flash(str(error), "error")
+            return redirect(url_for("flats_dashboard"))
+
+        db.session.commit()
+        flash(f"Flat {flat.display_name} cadastrado com sucesso.", "success")
+        return redirect(url_for("flat_calendar", flat_id=flat.id))
 
     @app.get("/admin/flats/<int:flat_id>/calendar")
     def flat_calendar(flat_id: int):
@@ -229,11 +269,11 @@ def register_routes(app: Flask) -> None:
         status = request.form.get("status") or ReservationStatus.BOOKED
 
         if not flat_id:
-            flash("Please select a flat for the reservation.", "error")
+            flash("Selecione um flat para a reserva.", "error")
             return redirect(url_for("reservations_dashboard"))
 
         if checkin_date is None or checkout_date is None:
-            flash("Please provide valid check-in and check-out dates.", "error")
+            flash("Informe datas validas de check-in e check-out.", "error")
             return redirect(url_for("reservations_dashboard", flat_id=flat_id))
 
         if db.session.get(Flat, flat_id) is None:
@@ -252,7 +292,7 @@ def register_routes(app: Flask) -> None:
             return redirect(url_for("reservations_dashboard", flat_id=flat_id))
 
         db.session.commit()
-        flash(f"Reservation created for {reservation.guest_name}.", "success")
+        flash(f"Reserva criada para {reservation.guest_name}.", "success")
         return redirect(url_for("flat_calendar", flat_id=flat_id))
 
     @app.get("/checkin/<token>")
@@ -283,9 +323,9 @@ def register_routes(app: Flask) -> None:
                 )
             )
             db.session.commit()
-            flash("Confirmation stored successfully. Thank you.", "success")
+            flash("Confirmacao registrada com sucesso. Obrigado.", "success")
         else:
-            flash("This confirmation was already recorded.", "success")
+            flash("Esta confirmacao ja havia sido registrada.", "success")
 
         return redirect(url_for("public_checkin", token=token))
 

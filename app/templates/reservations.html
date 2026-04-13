@@ -1,37 +1,37 @@
 {% extends "base.html" %}
 
-{% block title %}Reservations | Campina Flats{% endblock %}
+{% block title %}Reservas | Flats Dev{% endblock %}
 
 {% block content %}
 <section class="grid gap-6 xl:grid-cols-[430px_minmax(0,1fr)]">
     <div class="surface-card p-7">
-        <p class="kicker">Reservations</p>
-        <h2 class="headline-lg">Create reservation</h2>
-        <p class="body-copy">Register stays manually and protect availability with overlap validation.</p>
+        <p class="kicker">Reservas</p>
+        <h2 class="headline-lg">Criar reserva</h2>
+        <p class="body-copy">Registre hospedagens manualmente e proteja a disponibilidade com validacao de conflito.</p>
 
         <form action="{{ url_for('create_reservation_route') }}" method="post" class="mt-10 space-y-6">
             <div>
                 <label for="flat_id" class="mb-2.5 block text-sm font-semibold text-slate-700">Flat</label>
                 <select id="flat_id" name="flat_id" required class="input-control">
-                    <option value="">Choose a flat</option>
+                    <option value="">Escolha um flat</option>
                     {% for flat in flats %}
-                        <option value="{{ flat.id }}" {% if selected_flat_id == flat.id %}selected{% endif %}>{{ flat.name }} - {{ flat.address }}</option>
+                        <option value="{{ flat.id }}" {% if selected_flat_id == flat.id %}selected{% endif %}>{{ flat.display_name }} - {{ flat.address }}</option>
                     {% endfor %}
                 </select>
             </div>
 
             <div>
-                <label for="guest_name" class="mb-2.5 block text-sm font-semibold text-slate-700">Guest name</label>
+                <label for="guest_name" class="mb-2.5 block text-sm font-semibold text-slate-700">Nome do hospede</label>
                 <input id="guest_name" name="guest_name" type="text" required class="input-control" placeholder="Ex: Marina Costa">
             </div>
 
             <div class="grid gap-5 md:grid-cols-2">
                 <div>
-                    <label for="checkin_date" class="mb-2.5 block text-sm font-semibold text-slate-700">Check-in date</label>
+                    <label for="checkin_date" class="mb-2.5 block text-sm font-semibold text-slate-700">Data de check-in</label>
                     <input id="checkin_date" name="checkin_date" type="date" required class="input-control">
                 </div>
                 <div>
-                    <label for="checkout_date" class="mb-2.5 block text-sm font-semibold text-slate-700">Check-out date</label>
+                    <label for="checkout_date" class="mb-2.5 block text-sm font-semibold text-slate-700">Data de check-out</label>
                     <input id="checkout_date" name="checkout_date" type="date" required class="input-control">
                 </div>
             </div>
@@ -40,13 +40,13 @@
                 <label for="status" class="mb-2.5 block text-sm font-semibold text-slate-700">Status</label>
                 <select id="status" name="status" class="input-control">
                     {% for status in status_options %}
-                        <option value="{{ status }}">{{ status|capitalize }}</option>
+                        <option value="{{ status }}">{{ status|status_label }}</option>
                     {% endfor %}
                 </select>
             </div>
 
             <button type="submit" class="btn-primary">
-                Save reservation
+                Salvar reserva
             </button>
         </form>
     </div>
@@ -54,41 +54,41 @@
     <div class="surface-card p-7">
         <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
-                <p class="kicker">Booking list</p>
-                <h2 class="headline-lg">Current reservations</h2>
+                <p class="kicker">Lista de reservas</p>
+                <h2 class="headline-lg">Reservas atuais</h2>
             </div>
-            <p class="max-w-md text-sm leading-7 text-slate-500">Latest reservations ordered by check-in date.</p>
+            <p class="max-w-md text-sm leading-7 text-slate-500">As reservas mais recentes aparecem ordenadas por check-in.</p>
         </div>
 
         <div class="table-shell mt-7">
             <table class="data-table">
                 <thead>
                     <tr>
-                        <th>Guest</th>
+                        <th>Hospede</th>
                         <th>Flat</th>
-                        <th>Dates</th>
+                        <th>Datas</th>
                         <th>Status</th>
-                        <th>Actions</th>
+                        <th>Acoes</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for reservation in reservations %}
                         <tr>
                             <td class="font-semibold text-slate-900">{{ reservation.guest_name }}</td>
-                            <td>{{ reservation.flat.name }}</td>
-                            <td>{{ reservation.checkin_date|date_label }} to {{ reservation.checkout_date|date_label }}</td>
+                            <td>{{ reservation.flat.display_name }}</td>
+                            <td>{{ reservation.checkin_date|date_label }} a {{ reservation.checkout_date|date_label }}</td>
                             <td>
                                 <span class="chip {{ 'chip-info' if reservation.status == 'booked' else 'chip-success' if reservation.status == 'completed' else 'chip-neutral' }}">
-                                    {{ reservation.status|capitalize }}
+                                    {{ reservation.status|status_label }}
                                 </span>
                             </td>
                             <td>
-                                <a href="{{ url_for('flat_calendar', flat_id=reservation.flat_id) }}" class="muted-link">View calendar</a>
+                                <a href="{{ url_for('flat_calendar', flat_id=reservation.flat_id) }}" class="muted-link">Ver calendario</a>
                             </td>
                         </tr>
                     {% else %}
                         <tr>
-                            <td colspan="5" class="text-center text-slate-500">No reservations created yet.</td>
+                            <td colspan="5" class="text-center text-slate-500">Nenhuma reserva criada ainda.</td>
                         </tr>
                     {% endfor %}
                 </tbody>

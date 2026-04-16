@@ -4,10 +4,15 @@ from flask import Flask
 from sqlalchemy import inspect, select, text
 
 from .extensions import db
-from .models import CheckinLink, Flat, Reservation
+from .models import Flat
 from .services import generate_unique_flat_slug
 
 
+LEGACY_SEED_SLUGS = {"campina-standard-101", "campina-premium-202"}
+LEGACY_DEMO_FLAT_KEYS = {
+    ("Campina Standard 101", "Sem numero"),
+    ("Campina Premium 202", "Sem numero"),
+}
 SEED_FLATS: list[dict[str, str]] = [
     {
         "building_name": "Exclusive Home - Campina Grande PB",
@@ -75,7 +80,6 @@ SEED_FLATS: list[dict[str, str]] = [
         "address": "Av. Gov. Argemiro de Figueiredo, 280 - Jardim Oceania, Joao Pessoa - PB, 58037-030",
     },
 ]
-
 DEFAULT_CHECKIN_TIME = "14:00"
 DEFAULT_CHECKOUT_TIME = "11:00"
 DEFAULT_HOUSE_RULES = (
@@ -87,14 +91,13 @@ DEFAULT_HOUSE_RULES = (
 DEFAULT_WIFI_NAME = "FlatsDev"
 DEFAULT_WIFI_PASSWORD = "alterar-senha"
 DEFAULT_PARKING = "Consulte a recepcao ou a administracao para receber a vaga correta do quarto."
-LEGACY_SEED_SLUGS = {"campina-standard-101", "campina-premium-202"}
 
 
 def initialize_database(app: Flask) -> None:
     with app.app_context():
         db.create_all()
         apply_legacy_migrations()
-        reset_legacy_demo_data_if_needed()
+        remove_legacy_demo_flats()
         seed_flats()
         db.session.commit()
 
@@ -153,29 +156,33 @@ def backfill_flat_structure() -> None:
         flat.name = f"{flat.building_name} - {flat.room_number}"
 
 
-def reset_legacy_demo_data_if_needed() -> None:
+def remove_legacy_demo_flats() -> None:
     flats = db.session.scalars(select(Flat).order_by(Flat.id)).all()
+    legacy_flats = [
+        flat
+        for flat in flats
+        if flat.slug in LEGACY_SEED_SLUGS
+        or ((flat.building_name or "").strip(), (flat.room_number or "").strip())
+        in LEGACY_DEMO_FLAT_KEYS
+    ]
 
-    if not flats:
-        return
-
-    current_slugs = {flat.slug for flat in flats}
-    is_demo_catalog = current_slugs.issubset(LEGACY_SEED_SLUGS)
-    has_links = db.session.scalar(select(CheckinLink.id).limit(1)) is not None
-    demo_guest_names = {"Marina Costa", "Carlos Lima"}
-    reservations = db.session.scalars(select(Reservation)).all()
-    only_demo_reservations = {reservation.guest_name for reservation in reservations}.issubset(
-        demo_guest_names
-    )
-
-    if not is_demo_catalog or has_links or not only_demo_reservations:
-        return
-
-    db.session.execute(text("DELETE FROM confirmations"))
-    db.session.execute(text("DELETE FROM checkin_links"))
-    db.session.execute(text("DELETE FROM reservations"))
-    db.session.execute(text("DELETE FROM flats"))
-    db.session.commit()
+    for flat in legacy_flats:
+        db.session.execute(
+            text(
+                "DELETE FROM confirmations "
+                "WHERE checkin_link_id IN (SELECT id FROM checkin_links WHERE flat_id = :flat_id)"
+            ),
+            {"flat_id": flat.id},
+        )
+        db.session.execute(
+            text("DELETE FROM checkin_links WHERE flat_id = :flat_id"),
+            {"flat_id": flat.id},
+        )
+        db.session.execute(
+            text("DELETE FROM reservations WHERE flat_id = :flat_id"),
+            {"flat_id": flat.id},
+        )
+        db.session.delete(flat)
 
 
 def seed_flats() -> None:

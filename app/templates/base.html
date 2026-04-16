@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{% block title %}Flats Dev{% endblock %}</title>
+    <title>{% block title %}Campina Flats{% endblock %}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}">
 </head>
@@ -11,20 +11,18 @@
     {% if request.path.startswith("/admin") %}
         <div class="admin-shell min-h-screen text-slate-900">
             <aside class="admin-sidebar fixed inset-y-0 left-0 z-30 hidden w-72 flex-col border-r border-slate-200/80 px-6 py-7 lg:flex">
-                <a href="{{ url_for('admin_dashboard') }}" class="flex items-center gap-3">
-                    <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white shadow-[0_18px_30px_-18px_rgba(37,99,235,0.65)]">
-                        <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 10.5 12 3l9 7.5M5.25 9.75V20.25h13.5V9.75M9 20.25V14h6v6.25" />
-                        </svg>
-                    </div>
-                    <div>
-                        <p class="text-[0.95rem] font-semibold tracking-[-0.02em] text-slate-950">Flats Dev</p>
-                        <p class="mt-0.5 text-xs font-medium text-slate-500">Operacao interna</p>
+                <a href="{{ url_for('admin_dashboard') }}" class="block">
+                    <div class="brand-lockup brand-lockup-sidebar">
+                        <img src="{{ url_for('brand_logo') }}" alt="Campina Flats" class="brand-logo brand-logo-sidebar">
+                        <div class="brand-text-group">
+                            <p class="brand-name brand-name-sidebar">Campina Flats</p>
+                            <p class="brand-support-text">Operacao interna</p>
+                        </div>
                     </div>
                 </a>
 
                 <nav class="mt-10 space-y-2">
-                    <a href="{{ url_for('flats_dashboard') }}" class="sidebar-link {{ 'sidebar-link-active' if request.endpoint in ['flats_dashboard', 'flat_calendar', 'create_flat_route'] else '' }}">
+                    <a href="{{ url_for('flats_dashboard') }}" class="sidebar-link {{ 'sidebar-link-active' if request.endpoint in ['flats_dashboard', 'flat_calendar', 'create_flat_route', 'edit_flat_route', 'update_flat_route'] else '' }}">
                         <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75h6.5v6.5h-6.5zm10 0h6.5v6.5h-6.5zm-10 10h6.5v6.5h-6.5zm10 3.25h6.5m-6.5-3.25h6.5m-6.5 6.5h6.5" />
                         </svg>
@@ -59,9 +57,17 @@
             <div class="lg:pl-72">
                 <header class="admin-topbar sticky top-0 z-20 border-b border-slate-200/80">
                     <div class="flex items-center justify-between px-5 py-5 sm:px-8 lg:px-10">
-                        <div>
-                            <p class="text-[0.7rem] font-bold uppercase tracking-[0.28em] text-blue-600">Flats Dev</p>
-                            <h1 class="mt-1.5 text-[1.15rem] font-semibold tracking-[-0.035em] text-slate-950 sm:text-[1.3rem]">PAINEL INTERNO DE HOSPEDAGEM</h1>
+                        <div class="flex items-center gap-4">
+                            <div class="brand-lockup brand-lockup-topbar">
+                                <img src="{{ url_for('brand_logo') }}" alt="Campina Flats" class="brand-logo brand-logo-topbar">
+                                <div class="brand-text-group">
+                                    <p class="brand-name brand-name-topbar">Campina Flats</p>
+                                    <p class="brand-support-text">Operacao interna</p>
+                                </div>
+                            </div>
+                            <div>
+                                <h1 class="mt-1.5 text-[1.15rem] font-semibold tracking-[-0.035em] text-slate-950 sm:text-[1.3rem]">PAINEL INTERNO DE HOSPEDAGEM</h1>
+                            </div>
                         </div>
                         <div class="flex items-center gap-3">
                             <button type="button" class="flex h-11 w-11 items-center justify-center rounded-full border border-slate-200/80 bg-white/90 text-slate-500 shadow-[0_10px_25px_-20px_rgba(15,23,42,0.3)] transition hover:border-blue-200 hover:text-blue-600">
@@ -71,31 +77,36 @@
                             </button>
                             <div class="flex items-center gap-3 rounded-full border border-slate-200/80 bg-white/92 px-3 py-2 shadow-[0_10px_25px_-20px_rgba(15,23,42,0.3)]">
                                 <div class="text-right">
-                                    <p class="text-sm font-semibold tracking-[-0.02em] text-slate-900">Usuario Operacional</p>
+                                    <p class="text-sm font-semibold tracking-[-0.02em] text-slate-900">{{ session.get('operator_username', 'admin') }}</p>
                                     <p class="text-xs font-medium text-slate-500">Administrador</p>
                                 </div>
                                 <div class="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-slate-900 to-slate-700 text-sm font-semibold text-white">CF</div>
                             </div>
+                            <form action="{{ url_for('logout') }}" method="post">
+                                <button type="submit" class="btn-secondary !px-4 !py-3">
+                                    Sair
+                                </button>
+                            </form>
                         </div>
                     </div>
                 </header>
 
                 <main class="px-5 py-8 sm:px-8 lg:px-10">
                     <nav class="mb-6 flex gap-2 overflow-x-auto pb-1 lg:hidden">
-                        <a href="{{ url_for('flats_dashboard') }}" class="mobile-nav-link {{ 'mobile-nav-link-active' if request.endpoint in ['flats_dashboard', 'flat_calendar', 'create_flat_route'] else '' }}">Flats</a>
+                        <a href="{{ url_for('flats_dashboard') }}" class="mobile-nav-link {{ 'mobile-nav-link-active' if request.endpoint in ['flats_dashboard', 'flat_calendar', 'create_flat_route', 'edit_flat_route', 'update_flat_route'] else '' }}">Flats</a>
                         <a href="{{ url_for('admin_dashboard') }}" class="mobile-nav-link {{ 'mobile-nav-link-active' if request.endpoint in ['admin_dashboard', 'create_checkin_link', 'link_details'] else '' }}">Check-in</a>
                         <a href="{{ url_for('reservations_dashboard') }}" class="mobile-nav-link {{ 'mobile-nav-link-active' if request.endpoint in ['reservations_dashboard', 'create_reservation_route'] else '' }}">Reservas</a>
                         <a href="{{ url_for('reports_dashboard') }}" class="mobile-nav-link {{ 'mobile-nav-link-active' if request.endpoint == 'reports_dashboard' else '' }}">Relatorios</a>
                     </nav>
     {% else %}
-        <main class="public-shell min-h-screen px-4 py-8 text-slate-100 sm:px-6 lg:px-8">
+        <main class="public-shell min-h-screen px-4 py-8 text-slate-900 sm:px-6 lg:px-8">
     {% endif %}
 
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             <div class="{% if request.path.startswith('/admin') %}mb-6 space-y-3{% else %}mx-auto mb-6 w-full max-w-5xl space-y-3{% endif %}">
                 {% for category, message in messages %}
-                    <div class="{% if request.path.startswith('/admin') %}surface-card-subtle px-5 py-4 text-sm font-medium shadow-none {% if category == 'success' %}text-emerald-700{% else %}text-amber-700{% endif %}{% else %}rounded-2xl border px-4 py-3 text-sm shadow-lg backdrop-blur {{ 'border-emerald-400/40 bg-emerald-400/10 text-emerald-100' if category == 'success' else 'border-amber-400/40 bg-amber-400/10 text-amber-100' }}{% endif %}">
+                    <div class="{% if request.path.startswith('/admin') %}surface-card-subtle px-5 py-4 text-sm font-medium shadow-none {% if category == 'success' %}text-emerald-700{% else %}text-amber-700{% endif %}{% else %}surface-card-subtle px-5 py-4 text-sm font-medium {% if category == 'success' %}text-emerald-700{% else %}text-amber-700{% endif %}{% endif %}">
                         {{ message }}
                     </div>
                 {% endfor %}

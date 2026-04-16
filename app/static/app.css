@@ -375,6 +375,83 @@ body {
         linear-gradient(135deg, #1d4ed8 0%, #2563eb 45%, #3b82f6 100%);
 }
 
+.brand-lockup {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.brand-lockup-sidebar {
+    gap: 0.95rem;
+}
+
+.brand-lockup-topbar {
+    gap: 0.85rem;
+}
+
+.brand-lockup-hero {
+    gap: 1rem;
+}
+
+.brand-text-group {
+    min-width: 0;
+}
+
+.brand-logo {
+    display: block;
+    object-fit: cover;
+    object-position: center top;
+}
+
+.brand-logo-sidebar {
+    width: 72px;
+    height: 72px;
+}
+
+.brand-logo-topbar {
+    width: 58px;
+    height: 58px;
+    flex-shrink: 0;
+}
+
+.brand-logo-login {
+    width: 88px;
+    height: 88px;
+}
+
+.brand-logo-checkin {
+    width: 82px;
+    height: 82px;
+}
+
+.brand-name {
+    color: var(--text-strong);
+    font-weight: 700;
+    letter-spacing: -0.045em;
+    line-height: 1;
+}
+
+.brand-name-sidebar {
+    font-size: 1.38rem;
+}
+
+.brand-name-topbar {
+    font-size: 1.15rem;
+}
+
+.brand-name-hero {
+    font-size: clamp(1.7rem, 2.2vw, 2.2rem);
+}
+
+.brand-support-text {
+    margin-top: 0.35rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--brand);
+}
+
 .muted-link {
     font-size: 0.9rem;
     font-weight: 700;
@@ -388,6 +465,30 @@ body {
 
 .public-shell {
     background:
-        radial-gradient(circle at top left, rgba(59, 130, 246, 0.2), transparent 28%),
-        linear-gradient(180deg, #0f172a 0%, #020617 100%);
+        radial-gradient(circle at top left, rgba(59, 130, 246, 0.1), transparent 28%),
+        radial-gradient(circle at 85% 10%, rgba(99, 102, 241, 0.06), transparent 26%),
+        linear-gradient(180deg, #f8fafc 0%, #f4f7fb 100%);
+}
+
+.map-embed-shell {
+    overflow: hidden;
+    border-radius: 1.5rem;
+    border: 1px solid rgba(148, 163, 184, 0.22);
+    background: rgba(255, 255, 255, 0.92);
+    min-height: 280px;
+}
+
+.map-embed-frame {
+    display: block;
+    width: 100%;
+    min-height: 280px;
+    border: 0;
+}
+
+.map-embed-shell-compact {
+    min-height: 220px;
+}
+
+.map-embed-frame-compact {
+    min-height: 220px;
 }

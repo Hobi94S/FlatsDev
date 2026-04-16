@@ -45,15 +45,102 @@ def slugify(value: str) -> str:
 
 
 def generate_unique_flat_slug(building_name: str, room_number: str) -> str:
+    return build_unique_flat_slug(building_name, room_number)
+
+
+def normalize_flat_payload(
+    *,
+    building_name: str,
+    room_number: str,
+    address: str,
+    checkin_time: str,
+    checkout_time: str,
+    house_rules: str,
+    wifi_name: str,
+    wifi_password: str,
+    parking_instructions: str,
+) -> dict[str, str]:
+    return {
+        "building_name": building_name.strip(),
+        "room_number": room_number.strip(),
+        "address": address.strip(),
+        "checkin_time": checkin_time.strip(),
+        "checkout_time": checkout_time.strip(),
+        "house_rules": house_rules.strip(),
+        "wifi_name": wifi_name.strip(),
+        "wifi_password": wifi_password.strip(),
+        "parking_instructions": parking_instructions.strip(),
+    }
+
+
+def validate_flat_payload(
+    payload: dict[str, str],
+    *,
+    exclude_flat_id: int | None = None,
+) -> dict[str, str]:
+    if not payload["building_name"]:
+        raise ValueError("O nome do empreendimento e obrigatorio.")
+
+    if not payload["room_number"]:
+        raise ValueError("O numero do quarto ou flat e obrigatorio.")
+
+    if not payload["address"]:
+        raise ValueError("O endereco e obrigatorio.")
+
+    if not payload["checkin_time"]:
+        raise ValueError("O horario de check-in e obrigatorio.")
+
+    if not payload["checkout_time"]:
+        raise ValueError("O horario de check-out e obrigatorio.")
+
+    if not payload["house_rules"]:
+        raise ValueError("As regras da hospedagem sao obrigatorias.")
+
+    if not payload["wifi_name"]:
+        raise ValueError("O nome da rede Wi-Fi e obrigatorio.")
+
+    if not payload["wifi_password"]:
+        raise ValueError("A senha do Wi-Fi e obrigatoria.")
+
+    if not payload["parking_instructions"]:
+        raise ValueError("As instrucoes de estacionamento sao obrigatorias.")
+
+    existing_flat_query = (
+        select(Flat)
+        .where(Flat.building_name == payload["building_name"])
+        .where(Flat.room_number == payload["room_number"])
+    )
+    if exclude_flat_id is not None:
+        existing_flat_query = existing_flat_query.where(Flat.id != exclude_flat_id)
+
+    existing_flat = db.session.scalar(existing_flat_query)
+    if existing_flat is not None:
+        raise ValueError("Ja existe um flat com esse empreendimento e quarto.")
+
+    return payload
+
+
+def build_flat_name(building_name: str, room_number: str) -> str:
+    return f"{building_name} - {room_number}"
+
+
+def build_unique_flat_slug(
+    building_name: str,
+    room_number: str,
+    *,
+    exclude_flat_id: int | None = None,
+) -> str:
     base_slug = slugify(f"{building_name}-{room_number}")
     slug = base_slug
     suffix = 2
 
-    while db.session.scalar(select(Flat.id).where(Flat.slug == slug)) is not None:
+    while True:
+        existing_flat_id = db.session.scalar(select(Flat.id).where(Flat.slug == slug))
+        if existing_flat_id is None or existing_flat_id == exclude_flat_id:
+            return slug
+
         slug = f"{base_slug}-{suffix}"
         suffix += 1
-
-    return slug
 
 
 def create_flat(
@@ -68,63 +155,81 @@ def create_flat(
     wifi_password: str,
     parking_instructions: str,
 ) -> Flat:
-    normalized_building_name = building_name.strip()
-    normalized_room_number = room_number.strip()
-    normalized_address = address.strip()
-    normalized_house_rules = house_rules.strip()
-    normalized_wifi_name = wifi_name.strip()
-    normalized_wifi_password = wifi_password.strip()
-    normalized_parking = parking_instructions.strip()
-
-    if not normalized_building_name:
-        raise ValueError("O nome do empreendimento e obrigatorio.")
-
-    if not normalized_room_number:
-        raise ValueError("O numero do quarto ou flat e obrigatorio.")
-
-    if not normalized_address:
-        raise ValueError("O endereco e obrigatorio.")
-
-    if not checkin_time:
-        raise ValueError("O horario de check-in e obrigatorio.")
-
-    if not checkout_time:
-        raise ValueError("O horario de check-out e obrigatorio.")
-
-    if not normalized_house_rules:
-        raise ValueError("As regras da hospedagem sao obrigatorias.")
-
-    if not normalized_wifi_name:
-        raise ValueError("O nome da rede Wi-Fi e obrigatorio.")
-
-    if not normalized_wifi_password:
-        raise ValueError("A senha do Wi-Fi e obrigatoria.")
-
-    if not normalized_parking:
-        raise ValueError("As instrucoes de estacionamento sao obrigatorias.")
-
-    existing_flat = db.session.scalar(
-        select(Flat)
-        .where(Flat.building_name == normalized_building_name)
-        .where(Flat.room_number == normalized_room_number)
+    payload = validate_flat_payload(
+        normalize_flat_payload(
+            building_name=building_name,
+            room_number=room_number,
+            address=address,
+            checkin_time=checkin_time,
+            checkout_time=checkout_time,
+            house_rules=house_rules,
+            wifi_name=wifi_name,
+            wifi_password=wifi_password,
+            parking_instructions=parking_instructions,
+        )
     )
-    if existing_flat is not None:
-        raise ValueError("Ja existe um flat com esse empreendimento e quarto.")
 
     flat = Flat(
-        building_name=normalized_building_name,
-        room_number=normalized_room_number,
-        name=f"{normalized_building_name} - {normalized_room_number}",
-        slug=generate_unique_flat_slug(normalized_building_name, normalized_room_number),
-        address=normalized_address,
-        checkin_time=checkin_time,
-        checkout_time=checkout_time,
-        house_rules=normalized_house_rules,
-        wifi_name=normalized_wifi_name,
-        wifi_password=normalized_wifi_password,
-        parking_instructions=normalized_parking,
+        building_name=payload["building_name"],
+        room_number=payload["room_number"],
+        name=build_flat_name(payload["building_name"], payload["room_number"]),
+        slug=build_unique_flat_slug(payload["building_name"], payload["room_number"]),
+        address=payload["address"],
+        checkin_time=payload["checkin_time"],
+        checkout_time=payload["checkout_time"],
+        house_rules=payload["house_rules"],
+        wifi_name=payload["wifi_name"],
+        wifi_password=payload["wifi_password"],
+        parking_instructions=payload["parking_instructions"],
     )
     db.session.add(flat)
+    return flat
+
+
+def update_flat(
+    flat: Flat,
+    *,
+    building_name: str,
+    room_number: str,
+    address: str,
+    checkin_time: str,
+    checkout_time: str,
+    house_rules: str,
+    wifi_name: str,
+    wifi_password: str,
+    parking_instructions: str,
+) -> Flat:
+    payload = validate_flat_payload(
+        normalize_flat_payload(
+            building_name=building_name,
+            room_number=room_number,
+            address=address,
+            checkin_time=checkin_time,
+            checkout_time=checkout_time,
+            house_rules=house_rules,
+            wifi_name=wifi_name,
+            wifi_password=wifi_password,
+            parking_instructions=parking_instructions,
+        ),
+        exclude_flat_id=flat.id,
+    )
+
+    flat.building_name = payload["building_name"]
+    flat.room_number = payload["room_number"]
+    flat.name = build_flat_name(payload["building_name"], payload["room_number"])
+    flat.slug = build_unique_flat_slug(
+        payload["building_name"],
+        payload["room_number"],
+        exclude_flat_id=flat.id,
+    )
+    flat.address = payload["address"]
+    flat.checkin_time = payload["checkin_time"]
+    flat.checkout_time = payload["checkout_time"]
+    flat.house_rules = payload["house_rules"]
+    flat.wifi_name = payload["wifi_name"]
+    flat.wifi_password = payload["wifi_password"]
+    flat.parking_instructions = payload["parking_instructions"]
+
     return flat
 
 

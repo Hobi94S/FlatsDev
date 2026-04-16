@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Login | Campina Flats{% endblock %}
+
+{% block content %}
+<section class="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-6xl items-center">
+    <div class="grid w-full gap-8 lg:grid-cols-[minmax(0,1.05fr)_430px] lg:items-center">
+        <div class="surface-card p-8 sm:p-10">
+            <div class="brand-lockup brand-lockup-hero">
+                <img src="{{ url_for('brand_logo') }}" alt="Campina Flats" class="brand-logo brand-logo-login">
+                <div class="brand-text-group">
+                    <p class="brand-name brand-name-hero">Campina Flats</p>
+                    <p class="brand-support-text">Painel de acesso</p>
+                </div>
+            </div>
+            <h1 class="headline-xl max-w-3xl">Acesse o painel operacional dos flats</h1>
+            <p class="body-copy max-w-2xl">
+                Entre para gerenciar reservas, editar informacoes das unidades e acompanhar os links publicos de check-in em um fluxo unico.
+            </p>
+
+            <div class="mt-8 grid gap-4 sm:grid-cols-2">
+                <div class="info-tile">
+                    <p class="metric-label">Gestao centralizada</p>
+                    <p class="mt-3 text-sm leading-7 text-slate-600">
+                        Consulte disponibilidade, atualize dados dos flats e acompanhe o status de confirmacao dos hospedes.
+                    </p>
+                </div>
+                <div class="info-tile">
+                    <p class="metric-label">Acesso seguro</p>
+                    <p class="mt-3 text-sm leading-7 text-slate-600">
+                        O painel administrativo fica protegido por autenticacao antes de liberar o restante da operacao.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="surface-card p-7 text-slate-900 sm:p-8">
+            <p class="kicker">Login</p>
+            <h2 class="headline-lg">Entrar no sistema</h2>
+            <p class="body-copy">Use as credenciais de operador para liberar o acesso ao painel administrativo.</p>
+
+            <form action="{{ url_for('login') }}" method="post" class="mt-10 space-y-6">
+                {% if next_url %}
+                    <input type="hidden" name="next" value="{{ next_url }}">
+                {% endif %}
+
+                <div>
+                    <label for="username" class="mb-2.5 block text-sm font-semibold text-slate-700">Usuario</label>
+                    <input id="username" name="username" type="text" required class="input-control" value="{{ username or '' }}" placeholder="Digite seu usuario">
+                </div>
+
+                <div>
+                    <label for="password" class="mb-2.5 block text-sm font-semibold text-slate-700">Senha</label>
+                    <input id="password" name="password" type="password" required class="input-control" placeholder="Digite sua senha">
+                </div>
+
+                <button type="submit" class="btn-primary w-full">
+                    Entrar
+                </button>
+            </form>
+        </div>
+    </div>
+</section>
+{% endblock %}

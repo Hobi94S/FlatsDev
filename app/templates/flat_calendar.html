@@ -84,6 +84,9 @@
             <a href="{{ url_for('reservations_dashboard', flat_id=flat.id) }}" class="btn-primary">
                 Adicionar reserva
             </a>
+            <a href="{{ url_for('edit_flat_route', flat_id=flat.id) }}" class="btn-secondary">
+                Editar flat
+            </a>
             <a href="{{ url_for('admin_dashboard') }}" class="btn-secondary">
                 Gerar link de check-in
             </a>

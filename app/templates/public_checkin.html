@@ -1,74 +1,100 @@
 {% extends "base.html" %}
 
-{% block title %}Check-in | {{ link.flat.display_name }}{% endblock %}
+{% block title %}Check-in | {{ link.flat.display_name }} | Campina Flats{% endblock %}
 
 {% block content %}
 <section class="mx-auto grid w-full max-w-5xl gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-    <div class="rounded-[2rem] border border-white/10 bg-white/5 p-6 shadow-2xl shadow-sky-950/20 backdrop-blur">
-        <p class="text-sm uppercase tracking-[0.3em] text-sky-300">Flats Dev</p>
-        <h1 class="mt-3 text-3xl font-semibold text-white sm:text-4xl">Bem-vindo{% if link.guest_name %}, {{ link.guest_name }}{% endif %}</h1>
-        <p class="mt-4 text-sm leading-6 text-slate-300">
-            Esta pagina centraliza as informacoes da sua hospedagem em <span class="text-white">{{ link.flat.display_name }}</span>.
+    <div class="surface-card p-7 sm:p-8">
+        <div class="brand-lockup brand-lockup-hero">
+            <img src="{{ url_for('brand_logo') }}" alt="Campina Flats" class="brand-logo brand-logo-checkin">
+            <div class="brand-text-group">
+                <p class="brand-name brand-name-hero">Campina Flats</p>
+                <p class="brand-support-text">Check-in online</p>
+            </div>
+        </div>
+        <h1 class="headline-xl">Bem-vindo{% if link.guest_name %}, {{ link.guest_name }}{% endif %}</h1>
+        <p class="body-copy">
+            Esta pagina centraliza as informacoes da sua hospedagem em <span class="font-semibold text-slate-900">{{ link.flat.display_name }}</span>.
             Leia tudo com atencao antes da chegada.
         </p>
 
         <div class="mt-8 grid gap-4 sm:grid-cols-2">
-            <div class="rounded-2xl border border-white/10 bg-slate-900/70 p-5">
-                <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Check-in</p>
-                <p class="mt-2 text-2xl font-semibold text-white">{{ link.flat.checkin_time }}</p>
+            <div class="metric-card p-5">
+                <p class="metric-label">Check-in</p>
+                <p class="mt-3 text-2xl font-semibold tracking-[-0.03em] text-slate-900">{{ link.flat.checkin_time }}</p>
             </div>
-            <div class="rounded-2xl border border-white/10 bg-slate-900/70 p-5">
-                <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Check-out</p>
-                <p class="mt-2 text-2xl font-semibold text-white">{{ link.flat.checkout_time }}</p>
+            <div class="metric-card p-5">
+                <p class="metric-label">Check-out</p>
+                <p class="mt-3 text-2xl font-semibold tracking-[-0.03em] text-slate-900">{{ link.flat.checkout_time }}</p>
             </div>
         </div>
 
-        <div class="mt-6 rounded-2xl border border-white/10 bg-slate-900/70 p-5">
-            <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Endereco</p>
-            <p class="mt-2 text-sm leading-6 text-slate-200">{{ link.flat.address }}</p>
+        <div class="info-tile mt-6">
+            <p class="metric-label">Endereco</p>
+            <p class="mt-3 text-sm leading-7 text-slate-600">{{ link.flat.address }}</p>
         </div>
 
-        <div class="mt-6 rounded-2xl border border-white/10 bg-slate-900/70 p-5">
-            <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Regras da hospedagem</p>
-            <div class="mt-3 whitespace-pre-line text-sm leading-6 text-slate-200">{{ link.flat.house_rules }}</div>
+        <div class="info-tile mt-6">
+            <p class="metric-label">Regras da hospedagem</p>
+            <div class="mt-3 whitespace-pre-line text-sm leading-7 text-slate-600">{{ link.flat.house_rules }}</div>
         </div>
 
         {% if link.reservation %}
-            <div class="mt-6 rounded-2xl border border-white/10 bg-slate-900/70 p-5">
-                <p class="text-xs uppercase tracking-[0.2em] text-slate-400">Periodo da reserva</p>
-                <p class="mt-2 text-sm leading-6 text-slate-200">{{ link.reservation.checkin_date|date_label }} a {{ link.reservation.checkout_date|date_label }}</p>
+            <div class="info-tile mt-6">
+                <p class="metric-label">Periodo da reserva</p>
+                <p class="mt-3 text-sm leading-7 text-slate-600">{{ link.reservation.checkin_date|date_label }} a {{ link.reservation.checkout_date|date_label }}</p>
             </div>
         {% endif %}
     </div>
 
     <div class="space-y-6">
-        <div class="rounded-[2rem] border border-white/10 bg-slate-900/70 p-6 shadow-2xl shadow-orange-950/20">
-            <p class="text-sm uppercase tracking-[0.3em] text-orange-300">Wi-Fi</p>
-            <div class="mt-4 space-y-4 text-sm text-slate-200">
+        <div class="surface-card p-7">
+            <p class="kicker">Wi-Fi</p>
+            <div class="mt-5 space-y-4 text-sm">
                 <div>
-                    <p class="text-slate-400">Rede</p>
-                    <p class="mt-1 font-medium text-white">{{ link.flat.wifi_name }}</p>
+                    <p class="text-slate-500">Rede</p>
+                    <p class="mt-1 font-semibold text-slate-900">{{ link.flat.wifi_name }}</p>
                 </div>
                 <div>
-                    <p class="text-slate-400">Senha</p>
-                    <p class="mt-1 font-medium text-white">{{ link.flat.wifi_password }}</p>
+                    <p class="text-slate-500">Senha</p>
+                    <p class="mt-1 font-semibold text-slate-900">{{ link.flat.wifi_password }}</p>
                 </div>
             </div>
         </div>
 
-        <div class="rounded-[2rem] border border-white/10 bg-slate-900/70 p-6 shadow-2xl shadow-sky-950/20">
-            <p class="text-sm uppercase tracking-[0.3em] text-sky-300">Estacionamento</p>
-            <p class="mt-4 text-sm leading-6 text-slate-200">{{ link.flat.parking_instructions }}</p>
+        <div class="surface-card p-7">
+            <p class="kicker">Estacionamento</p>
+            <p class="mt-5 text-sm leading-7 text-slate-600">{{ link.flat.parking_instructions }}</p>
         </div>
 
-        <div class="rounded-[2rem] border border-white/10 bg-white/5 p-6 backdrop-blur">
+        <div class="surface-card p-7">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                    <p class="kicker">Localizacao</p>
+                    <p class="mt-3 max-w-sm text-sm leading-7 text-slate-600">Visualize o ponto no mapa e abra a rota externa quando precisar chegar ao flat.</p>
+                </div>
+                <a href="{{ maps_directions_url }}" target="_blank" rel="noreferrer" class="muted-link sm:shrink-0">
+                    Abrir no Google Maps
+                </a>
+            </div>
+            <div class="map-embed-shell map-embed-shell-compact mt-5">
+                <iframe
+                    src="{{ maps_embed_url }}"
+                    class="map-embed-frame map-embed-frame-compact"
+                    loading="lazy"
+                    allowfullscreen
+                    referrerpolicy="no-referrer-when-downgrade"></iframe>
+            </div>
+        </div>
+
+        <div class="surface-card p-7">
             {% if link.confirmation %}
-                <p class="inline-flex rounded-full bg-emerald-400/10 px-3 py-1 text-xs font-medium text-emerald-200">Ja confirmado</p>
-                <p class="mt-4 text-sm leading-6 text-slate-300">
-                    Sua confirmacao foi registrada em <span class="text-white">{{ link.confirmation.agreed_at|datetime_label }}</span>. Obrigado.
+                <p class="inline-flex rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-700">Ja confirmado</p>
+                <p class="mt-4 text-sm leading-7 text-slate-600">
+                    Sua confirmacao foi registrada em <span class="font-semibold text-slate-900">{{ link.confirmation.agreed_at|datetime_label }}</span>. Obrigado.
                 </p>
             {% else %}
-                <p class="text-sm leading-6 text-slate-300">
+                <p class="text-sm leading-7 text-slate-600">
                     Depois de ler as informacoes acima, clique no botao abaixo para confirmar que leu e concorda com as instrucoes da hospedagem.
                 </p>
                 <form action="{{ url_for('confirm_checkin', token=link.token) }}" method="post" class="mt-5">

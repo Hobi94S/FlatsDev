@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Detalhes do Link | Flats Dev{% endblock %}
+{% block title %}Detalhes do Link | Campina Flats{% endblock %}
 
 {% block content %}
 <section class="grid gap-6 xl:grid-cols-[minmax(0,1.08fr)_380px]">
@@ -52,6 +52,23 @@
                 <h3 class="headline-lg">Aguardando confirmacao</h3>
                 <p class="body-copy">O link esta ativo, mas o hospede ainda nao confirmou a leitura.</p>
             {% endif %}
+        </div>
+
+        <div class="surface-card p-7">
+            <p class="kicker">Localizacao</p>
+            <h3 class="headline-lg">Google Maps do flat</h3>
+            <p class="mt-4 text-sm leading-7 text-slate-600">{{ link.flat.address }}</p>
+            <div class="map-embed-shell map-embed-shell-compact mt-6">
+                <iframe
+                    src="{{ maps_embed_url }}"
+                    class="map-embed-frame map-embed-frame-compact"
+                    loading="lazy"
+                    allowfullscreen
+                    referrerpolicy="no-referrer-when-downgrade"></iframe>
+            </div>
+            <a href="{{ maps_directions_url }}" target="_blank" rel="noreferrer" class="muted-link mt-4 inline-flex">
+                Abrir no Google Maps
+            </a>
         </div>
 
         <div class="surface-card p-7">

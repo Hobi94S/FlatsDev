@@ -46,7 +46,7 @@
                         </div>
                     </div>
                     <p class="kicker mt-8">3 coisas importantes antes da chegada</p>
-                    <h1 class="headline-xl">Tudo o que voce precisa para entrar sem mandar mensagem</h1>
+                    <h1 class="headline-xl">Informacoes da sua chegada</h1>
                     <p class="body-copy">
                         Bem-vindo{% if link.guest_name %}, {{ link.guest_name }}{% endif %}. Aqui estao os dados da sua hospedagem em
                         <span class="font-semibold text-slate-900">{{ link.flat.display_name }}</span>.
@@ -148,7 +148,7 @@
                 <span class="step-badge">2</span>
                 <div class="min-w-0 flex-1">
                     <p class="kicker">Estacionamento</p>
-                    <h2 class="headline-lg">Veja a instrução da vaga antes de chegar</h2>
+                    <h2 class="headline-lg">Confira a orientacao da vaga antes de chegar</h2>
                     <div class="info-tile mt-6">
                         <div class="space-y-3 text-sm leading-7 text-slate-700">
                             {% for line in parking_lines %}
@@ -207,7 +207,7 @@
                 <span class="step-badge">4</span>
                 <div class="min-w-0 flex-1">
                     <p class="kicker">Wi-Fi</p>
-                    <h2 class="headline-lg">Copie a rede e a senha sem erro</h2>
+                    <h2 class="headline-lg">Rede e senha do Wi-Fi</h2>
                     <div class="mt-6 grid gap-4 sm:grid-cols-2">
                         <div class="info-tile">
                             <p class="metric-label">Rede</p>
@@ -253,7 +253,6 @@
             </p>
             <div class="mt-5 flex flex-wrap items-center gap-3">
                 <span class="rounded-full bg-white/12 px-4 py-2 text-sm font-semibold">{{ link.flat.fallback_contact }}</span>
-                <a href="{{ maps_directions_url }}" target="_blank" rel="noreferrer" class="copy-chip" data-event-link="maps_click">Abrir rota no Google Maps</a>
             </div>
         </section>
 

@@ -98,7 +98,7 @@ DEFAULT_ARRIVAL_STEPS = (
 )
 DEFAULT_BUILDING_ACCESS = "Apresente-se na portaria e siga as orientacoes de acesso informadas no link."
 DEFAULT_DOOR_CODE = "Senha da fechadura digital a confirmar pela operacao."
-DEFAULT_FALLBACK_CONTACT = "WhatsApp da operacao"
+DEFAULT_FALLBACK_CONTACT = "WhatsApp da operacao: +55 (83) 99999-9999"
 
 
 def initialize_database(app: Flask) -> None:
@@ -189,7 +189,7 @@ def backfill_flat_structure() -> None:
         if not flat.door_code:
             flat.door_code = DEFAULT_DOOR_CODE
 
-        if not flat.fallback_contact:
+        if not flat.fallback_contact or flat.fallback_contact == "WhatsApp da operacao":
             flat.fallback_contact = DEFAULT_FALLBACK_CONTACT
 
 
@@ -242,7 +242,7 @@ def seed_flats() -> None:
                 flat.building_access = DEFAULT_BUILDING_ACCESS
             if not flat.door_code:
                 flat.door_code = DEFAULT_DOOR_CODE
-            if not flat.fallback_contact:
+            if not flat.fallback_contact or flat.fallback_contact == "WhatsApp da operacao":
                 flat.fallback_contact = DEFAULT_FALLBACK_CONTACT
             continue
 

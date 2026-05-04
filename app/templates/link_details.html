@@ -104,7 +104,7 @@
         <div class="surface-card p-7">
             <p class="kicker">Acoes</p>
             <div class="mt-7 flex flex-wrap gap-3">
-                <a href="{{ preview_url }}" target="_blank" rel="noreferrer" class="btn-primary">Prever pagina</a>
+                <a href="{{ preview_url }}" target="_blank" rel="noreferrer" class="btn-primary">Visualizar pagina</a>
                 <a href="{{ whatsapp_url }}" target="_blank" rel="noreferrer" class="btn-secondary">Abrir WhatsApp</a>
                 <form action="{{ url_for('regenerate_checkin_link', link_id=link.id) }}" method="post">
                     <button type="submit" class="btn-secondary">Regenerar link</button>

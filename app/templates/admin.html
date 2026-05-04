@@ -3,236 +3,345 @@
 {% block title %}Links de Check-in | Campina Flats{% endblock %}
 
 {% block content %}
-<section class="mb-8">
+<section class="space-y-6">
     <div class="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
         <div class="max-w-3xl">
-            <p class="kicker">Check-in</p>
-            <h2 class="headline-xl">Gere links a partir de reservas ativas</h2>
+            <p class="kicker">Operacao de check-in</p>
+            <h2 class="headline-xl">Gere, envie e acompanhe links sem contaminar as metricas</h2>
             <p class="body-copy">
-                Selecione a reserva, confira a visualizacao do hospede e copie o link publico sem precisar montar os dados manualmente.
+                O painel agora prioriza as reservas que entram primeiro, evita link duplicado e mostra o que ainda precisa de acao.
             </p>
         </div>
-        <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <div class="metric-card p-5">
-                <p class="metric-label">Flats</p>
-                <p class="metric-value">{{ summary.total }}</p>
+        <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <div class="action-card">
+                <p class="metric-label">Entradas hoje</p>
+                <p class="action-card-value">{{ summary.entries_today }}</p>
+                <p class="mt-2 text-sm text-slate-500">Reservas que entram hoje</p>
             </div>
-            <div class="metric-card p-5">
-                <p class="metric-label">Disponiveis</p>
-                <p class="metric-value text-emerald-600">{{ summary.available }}</p>
+            <div class="action-card">
+                <p class="metric-label">Sem link</p>
+                <p class="action-card-value text-amber-600">{{ summary.without_link }}</p>
+                <p class="mt-2 text-sm text-slate-500">Precisam de envio imediato</p>
             </div>
-            <div class="metric-card p-5">
-                <p class="metric-label">Ocupados</p>
-                <p class="metric-value text-orange-500">{{ summary.occupied }}</p>
+            <div class="action-card">
+                <p class="metric-label">Abriu e nao confirmou</p>
+                <p class="action-card-value text-orange-500">{{ summary.opened_unconfirmed }}</p>
+                <p class="mt-2 text-sm text-slate-500">Pedem follow-up ou lembrete</p>
             </div>
-            <div class="metric-card p-5">
-                <p class="metric-label">Proximos</p>
-                <p class="metric-value text-blue-600">{{ summary.upcoming }}</p>
+            <div class="action-card">
+                <p class="metric-label">Nunca abriu</p>
+                <p class="action-card-value text-blue-600">{{ summary.never_opened }}</p>
+                <p class="mt-2 text-sm text-slate-500">Link enviado sem abertura ainda</p>
             </div>
         </div>
     </div>
-</section>
 
-<section class="grid gap-6 xl:grid-cols-[minmax(0,1.05fr)_minmax(380px,0.95fr)]">
-    <div class="surface-card p-7">
-        <div class="flex items-start justify-between gap-4">
-            <div class="max-w-xl">
-                <p class="kicker">Formulario</p>
-                <h3 class="headline-lg">Gerar novo link de check-in</h3>
-                <p class="body-copy">
-                    O link agora e vinculado diretamente a uma reserva, garantindo hospede, datas e flat corretos.
-                </p>
+    <div class="grid gap-6 xl:grid-cols-[minmax(0,1.08fr)_420px]">
+        <div class="surface-card p-7">
+            <div class="flex items-start justify-between gap-4">
+                <div class="max-w-xl">
+                    <p class="kicker">Gerador</p>
+                    <h3 class="headline-lg">Escolha a reserva certa e dispare o link sem erro</h3>
+                    <p class="body-copy">
+                        Busque por hospede, flat ou data. Se a reserva ja tiver link ativo, o sistema reutiliza o mesmo link para evitar duplicidade.
+                    </p>
+                </div>
+                <span class="eyebrow-pill">Pesquisa + validacao</span>
             </div>
-            <span class="eyebrow-pill">Baseado em reserva</span>
-        </div>
 
-        <form id="checkin-form" action="{{ url_for('create_checkin_link') }}" method="post" class="mt-10 space-y-7">
-            <div class="grid gap-6">
+            <form id="checkin-form" action="{{ url_for('create_checkin_link') }}" method="post" class="mt-10 space-y-6">
                 <div>
-                    <label for="reservation_id" class="mb-2.5 block text-sm font-semibold text-slate-700">Reserva</label>
-                    <select id="reservation_id" name="reservation_id" class="input-control" required>
-                        <option value="">Selecione uma reserva</option>
-                        {% for reservation in linkable_reservations %}
-                            <option value="{{ reservation.id }}">
-                                {{ reservation.guest_name }} - {{ reservation.flat.display_name }} - {{ reservation.checkin_date|date_label }} a {{ reservation.checkout_date|date_label }}
-                            </option>
-                        {% endfor %}
-                    </select>
+                    <label for="reservation-search" class="mb-2.5 block text-sm font-semibold text-slate-700">Buscar reserva</label>
+                    <input id="reservation-search" type="search" class="input-control" placeholder="Digite hospede, flat ou data">
+                </div>
+
+                <div class="reservation-picker">
+                    <input type="hidden" id="reservation_id" name="reservation_id" required>
+                    {% for reservation in linkable_reservations %}
+                        <button
+                            type="button"
+                            class="reservation-option"
+                            data-reservation-option
+                            data-id="{{ reservation.id }}"
+                            data-search="{{ (reservation.guest_name ~ ' ' ~ reservation.flat.display_name ~ ' ' ~ reservation.checkin_date|date_label ~ ' ' ~ reservation.checkout_date|date_label)|lower }}">
+                            <div class="flex items-start justify-between gap-4">
+                                <div>
+                                    <p class="font-semibold text-slate-900">{{ reservation.guest_name }}</p>
+                                    <p class="mt-1 text-sm text-slate-500">{{ reservation.flat.display_name }}</p>
+                                    <p class="mt-2 text-sm text-slate-600">{{ reservation.checkin_date|date_label }} a {{ reservation.checkout_date|date_label }}</p>
+                                </div>
+                                {% set active_link = reservation.checkin_links|selectattr('status', 'equalto', 'active')|list|first %}
+                                {% if active_link %}
+                                    <span class="chip chip-info">Ja tem link ativo</span>
+                                {% else %}
+                                    <span class="chip chip-warning">Sem link</span>
+                                {% endif %}
+                            </div>
+                        </button>
+                    {% else %}
+                        <p class="px-3 py-4 text-sm text-slate-500">Nenhuma reserva disponivel para gerar link.</p>
+                    {% endfor %}
+                </div>
+
+                <div class="surface-card-subtle p-5">
+                    <p class="metric-label">Reserva selecionada</p>
+                    <div id="selected-reservation-empty" class="mt-3 text-sm text-slate-500">
+                        Nenhuma reserva escolhida ainda.
+                    </div>
+                    <div id="selected-reservation-card" class="hidden">
+                        <p id="selected-reservation-name" class="mt-3 text-lg font-semibold text-slate-900"></p>
+                        <p id="selected-reservation-flat" class="mt-1 text-sm text-slate-500"></p>
+                        <p id="selected-reservation-dates" class="mt-2 text-sm text-slate-600"></p>
+                    </div>
                 </div>
 
                 <div>
                     <label for="platform" class="mb-2.5 block text-sm font-semibold text-slate-700">Canal de envio</label>
                     <select id="platform" name="platform" class="input-control">
-                        <option value="WhatsApp">WhatsApp</option>
-                        <option value="Booking">Booking</option>
-                        <option value="Airbnb">Airbnb</option>
-                        <option value="Instagram">Instagram</option>
+                        {% for channel in channel_options %}
+                            <option value="{{ channel }}">{{ channel }}</option>
+                        {% endfor %}
                     </select>
                 </div>
-            </div>
 
-            <button type="submit" class="btn-primary">
-                Gerar link de check-in
-            </button>
-        </form>
+                <button type="submit" class="btn-primary w-full sm:w-auto">
+                    Gerar ou reutilizar link
+                </button>
+            </form>
 
-        <div class="surface-card-subtle mt-8 p-5">
-            <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-                <div class="min-w-0 flex-1">
-                    <label for="generated-link" class="mb-2.5 block text-sm font-semibold text-slate-700">Link gerado</label>
-                    <input id="generated-link" type="text" readonly value="{{ generated_link_url or '' }}" placeholder="O link publico aparecera aqui apos a geracao" class="input-control bg-white pr-12 font-mono text-sm text-slate-700">
-                </div>
-                <div class="flex gap-3">
-                    <button type="button" id="copy-link-button" class="btn-secondary">
-                        Copiar
-                    </button>
-                    {% if generated_link_url %}
-                        <a href="{{ generated_link_url }}" target="_blank" rel="noreferrer" class="btn-secondary">
-                            Abrir
-                        </a>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="surface-card p-7">
-        <div class="flex items-start justify-between gap-4">
-            <div class="max-w-xl">
-                <p class="kicker">Visualizacao</p>
-                <h3 class="headline-lg">Previa da pagina do hospede</h3>
-                <p class="body-copy">
-                    Confira as informacoes do flat e da reserva antes de compartilhar o link.
-                </p>
-            </div>
-            <span class="eyebrow-pill">Mobile</span>
-        </div>
-
-        <div class="mt-10 flex justify-center">
-            <div class="preview-device">
-                <div class="preview-screen">
-                    <div class="preview-hero px-6 pb-7 pt-8 text-white">
-                        <p class="text-[0.68rem] font-bold uppercase tracking-[0.32em] text-blue-100">Campina Flats</p>
-                        <h4 id="preview-flat-name" class="mt-3 text-[1.85rem] font-semibold tracking-[-0.04em]">Selecione uma reserva</h4>
-                        <p id="preview-platform" class="mt-2 text-sm text-blue-100">Compartilhamento via WhatsApp</p>
-                    </div>
-
-                    <div class="space-y-5 p-6">
-                        <div>
-                            <p class="text-[0.68rem] font-bold uppercase tracking-[0.22em] text-slate-400">Hospede</p>
-                            <p id="preview-guest-name" class="mt-2 text-lg font-semibold tracking-[-0.03em] text-slate-900">Bem-vindo</p>
-                            <p class="mt-2 text-sm leading-7 text-slate-600">Todas as instrucoes da reserva serao apresentadas ao hospede nesta pagina.</p>
+            <div class="mt-8 grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
+                <div class="surface-card-subtle p-5">
+                    <div class="flex flex-col gap-4">
+                        <div class="min-w-0">
+                            <label for="generated-link" class="mb-2.5 block text-sm font-semibold text-slate-700">Link publico</label>
+                            <input id="generated-link" type="text" readonly value="{{ generated_link_url or '' }}" placeholder="O link aparecera aqui apos a geracao" class="input-control bg-white font-mono text-sm text-slate-700">
                         </div>
-
-                        <div class="grid grid-cols-2 gap-3">
-                            <div class="info-tile">
-                                <p class="text-[0.68rem] font-bold uppercase tracking-[0.22em] text-slate-400">Check-in</p>
-                                <p id="preview-checkin-time" class="mt-2 text-lg font-semibold tracking-[-0.03em] text-slate-900">--:--</p>
-                                <p id="preview-checkin-date" class="mt-1.5 text-xs text-slate-500">Data nao selecionada</p>
-                            </div>
-                            <div class="info-tile">
-                                <p class="text-[0.68rem] font-bold uppercase tracking-[0.22em] text-slate-400">Check-out</p>
-                                <p id="preview-checkout-time" class="mt-2 text-lg font-semibold tracking-[-0.03em] text-slate-900">--:--</p>
-                                <p id="preview-checkout-date" class="mt-1.5 text-xs text-slate-500">Data nao selecionada</p>
-                            </div>
-                        </div>
-
-                        <div class="info-tile">
-                            <p class="text-[0.68rem] font-bold uppercase tracking-[0.22em] text-slate-400">Wi-Fi</p>
-                            <p id="preview-wifi-name" class="mt-2 text-sm font-semibold text-slate-900">Selecione uma reserva</p>
-                            <p id="preview-wifi-password" class="mt-1.5 text-sm text-slate-600">A senha aparecera aqui</p>
-                        </div>
-
-                        <div class="info-tile">
-                            <p class="text-[0.68rem] font-bold uppercase tracking-[0.22em] text-slate-400">Regras da hospedagem</p>
-                            <div id="preview-house-rules" class="mt-3 whitespace-pre-line text-sm leading-7 text-slate-600">Escolha uma reserva para visualizar as orientacoes enviadas ao hospede.</div>
-                        </div>
-
-                        <button type="button" class="btn-primary w-full">
-                            Li e concordo
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<section class="surface-card mt-6 p-7">
-    <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        <div>
-            <p class="kicker">Atividade recente</p>
-            <h3 class="headline-lg">Ultimos links gerados</h3>
-        </div>
-        <p class="max-w-xl text-sm leading-7 text-slate-500">Use esta lista para reabrir links, acompanhar visualizacoes e validar confirmacoes.</p>
-    </div>
-
-    <div class="table-shell mt-7">
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th>Flat</th>
-                    <th>Hospede</th>
-                    <th>Token</th>
-                    <th>Visualizacoes</th>
-                    <th>Status</th>
-                    <th>Acoes</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for link in recent_links %}
-                    <tr>
-                        <td>
-                            <p class="font-semibold text-slate-900">{{ link.flat.display_name }}</p>
-                            <p class="mt-1 text-xs text-slate-500">{{ link.created_at|datetime_label }}</p>
-                        </td>
-                        <td>{{ link.guest_name or "Nao informado" }}</td>
-                        <td class="font-mono text-xs text-slate-600">{{ link.token }}</td>
-                        <td>{{ link.view_count }}</td>
-                        <td>
-                            {% if link.confirmation %}
-                                <span class="chip chip-success">Confirmado</span>
-                            {% else %}
-                                <span class="chip chip-warning">Pendente</span>
+                        <div class="flex flex-wrap gap-3">
+                            <button type="button" id="copy-link-button" class="btn-secondary">Copiar link</button>
+                            {% if generated_link_preview_url %}
+                                <a href="{{ generated_link_preview_url }}" target="_blank" rel="noreferrer" class="btn-secondary">Prever</a>
                             {% endif %}
-                        </td>
-                        <td>
-                            <div class="flex flex-wrap gap-3">
-                                <a href="{{ url_for('link_details', link_id=link.id) }}" class="muted-link">Detalhes</a>
-                                <a href="{{ url_for('public_checkin', token=link.token) }}" target="_blank" rel="noreferrer" class="text-sm font-semibold text-slate-600 transition hover:text-slate-900">Abrir</a>
+                            {% if generated_link %}
+                                <button type="button" id="send-whatsapp-button" data-link-id="{{ generated_link.id }}" class="btn-primary">Enviar via WhatsApp</button>
+                                <form action="{{ url_for('regenerate_checkin_link', link_id=generated_link.id) }}" method="post">
+                                    <button type="submit" class="btn-secondary">Regenerar</button>
+                                </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="surface-card-subtle p-5">
+                    <p class="metric-label">Progresso do link</p>
+                    <div class="status-track mt-4">
+                        {% if generated_link %}
+                            <div class="status-step status-step-complete">
+                                <span class="status-dot"></span>
+                                <div>
+                                    <p class="text-sm font-semibold text-slate-900">Gerado</p>
+                                    <p class="text-xs text-slate-500">{{ generated_link.created_at|datetime_label }}</p>
+                                </div>
                             </div>
-                        </td>
-                    </tr>
-                {% else %}
-                    <tr>
-                        <td colspan="6" class="text-center text-slate-500">Nenhum link gerado ainda.</td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                            <div class="status-step {{ 'status-step-complete' if generated_link.sent_at else 'status-step-active' }}">
+                                <span class="status-dot"></span>
+                                <div>
+                                    <p class="text-sm font-semibold text-slate-900">Enviado</p>
+                                    <p class="text-xs text-slate-500">{{ generated_link.sent_at|datetime_label if generated_link.sent_at else 'Aguardando disparo' }}</p>
+                                </div>
+                            </div>
+                            <div class="status-step {{ 'status-step-complete' if generated_link.first_guest_opened_at else 'status-step-active' }}">
+                                <span class="status-dot"></span>
+                                <div>
+                                    <p class="text-sm font-semibold text-slate-900">Aberto</p>
+                                    <p class="text-xs text-slate-500">{{ generated_link.first_guest_opened_at|datetime_label if generated_link.first_guest_opened_at else 'Sem abertura ainda' }}</p>
+                                </div>
+                            </div>
+                            <div class="status-step {{ 'status-step-complete' if generated_link.confirmation else 'status-step-active' }}">
+                                <span class="status-dot"></span>
+                                <div>
+                                    <p class="text-sm font-semibold text-slate-900">Confirmado</p>
+                                    <p class="text-xs text-slate-500">{{ generated_link.confirmation.agreed_at|datetime_label if generated_link.confirmation else 'Pendente' }}</p>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="status-step status-step-active">
+                                <span class="status-dot"></span>
+                                <div>
+                                    <p class="text-sm font-semibold text-slate-900">Sem link selecionado</p>
+                                    <p class="text-xs text-slate-500">Gere um link para acompanhar a jornada.</p>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="space-y-6">
+            <div class="surface-card p-7">
+                <div class="flex items-start justify-between gap-4">
+                    <div class="max-w-xl">
+                        <p class="kicker">Preview fiel</p>
+                        <h3 class="headline-lg">A experiencia do hospede antes do envio</h3>
+                        <p class="body-copy">
+                            A previa replica a nova pagina publica com bloco acima da dobra, etapas e confirmacao sticky.
+                        </p>
+                    </div>
+                    <span class="eyebrow-pill">Mobile first</span>
+                </div>
+
+                <div class="mt-8 flex justify-center">
+                    <div class="preview-device">
+                        <div class="preview-screen">
+                            <div class="preview-hero px-5 pb-6 pt-7 text-white">
+                                <p class="text-[0.68rem] font-bold uppercase tracking-[0.28em] text-blue-100">3 coisas importantes</p>
+                                <h4 id="preview-flat-name" class="mt-3 text-[1.5rem] font-semibold tracking-[-0.04em]">Selecione uma reserva</h4>
+                                <p id="preview-guest-name" class="mt-2 text-sm text-blue-100">Sem hospede selecionado</p>
+                            </div>
+                            <div class="space-y-4 p-5">
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div class="preview-mini-step">
+                                        <p class="text-[0.68rem] font-bold uppercase tracking-[0.22em] text-slate-400">Check-in</p>
+                                        <p id="preview-checkin-time" class="mt-2 text-base font-semibold text-slate-900">--:--</p>
+                                        <p id="preview-checkin-date" class="mt-1 text-xs text-slate-500">Sem data</p>
+                                    </div>
+                                    <div class="preview-mini-step">
+                                        <p class="text-[0.68rem] font-bold uppercase tracking-[0.22em] text-slate-400">Check-out</p>
+                                        <p id="preview-checkout-time" class="mt-2 text-base font-semibold text-slate-900">--:--</p>
+                                        <p id="preview-checkout-date" class="mt-1 text-xs text-slate-500">Sem data</p>
+                                    </div>
+                                </div>
+                                <div class="preview-mini-step">
+                                    <p class="text-[0.68rem] font-bold uppercase tracking-[0.22em] text-slate-400">Wi-Fi</p>
+                                    <p id="preview-wifi-name" class="mt-2 text-sm font-semibold text-slate-900">Selecione uma reserva</p>
+                                    <p id="preview-wifi-password" class="mt-1 text-xs text-slate-500">A senha aparecera aqui</p>
+                                </div>
+                                <div class="preview-mini-step">
+                                    <p class="text-[0.68rem] font-bold uppercase tracking-[0.22em] text-slate-400">Estacionamento</p>
+                                    <p id="preview-parking" class="mt-2 text-sm leading-6 text-slate-600">A orientacao principal aparecera aqui.</p>
+                                </div>
+                                <div class="preview-mini-step">
+                                    <p class="text-[0.68rem] font-bold uppercase tracking-[0.22em] text-slate-400">Como entrar</p>
+                                    <p id="preview-access" class="mt-2 text-sm leading-6 text-slate-600">A instrucao de acesso ao predio aparecera aqui.</p>
+                                </div>
+                                <div class="preview-mini-step">
+                                    <p class="text-[0.68rem] font-bold uppercase tracking-[0.22em] text-slate-400">Suporte</p>
+                                    <p id="preview-support" class="mt-2 text-sm leading-6 text-slate-600">Contato de fallback nao definido.</p>
+                                </div>
+                                <div class="rounded-2xl bg-emerald-400 px-4 py-3 text-center text-sm font-semibold text-slate-950">
+                                    Li e estou ciente
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="surface-card p-7">
+                <p class="kicker">Follow-up</p>
+                <h3 class="headline-lg">Quem precisa de acompanhamento agora</h3>
+                <div class="mt-7 space-y-3">
+                    {% for link in follow_up_links %}
+                        <div class="surface-card-subtle p-4">
+                            <div class="flex items-start justify-between gap-4">
+                                <div>
+                                    <p class="font-semibold text-slate-900">{{ link.guest_name }}</p>
+                                    <p class="mt-1 text-sm text-slate-500">{{ link.flat.display_name }}</p>
+                                    <p class="mt-2 text-sm text-slate-600">Abriu em {{ link.first_guest_opened_at|datetime_label }} e ainda nao confirmou.</p>
+                                </div>
+                                <a href="{{ url_for('link_details', link_id=link.id) }}" class="muted-link">Detalhes</a>
+                            </div>
+                        </div>
+                    {% else %}
+                        <p class="text-sm text-slate-500">Nenhum hospede aberto sem confirmacao no momento.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
     </div>
+
+    <section class="surface-card p-7">
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+                <p class="kicker">Links recentes</p>
+                <h3 class="headline-lg">Decida sem olhar token bruto</h3>
+            </div>
+            <p class="max-w-xl text-sm leading-7 text-slate-500">Veja canal, ultima abertura, expiracao e status da confirmacao em vez de detalhes tecnicos sem valor operacional.</p>
+        </div>
+
+        <div class="table-shell mt-7">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Hospede / Flat</th>
+                        <th>Periodo</th>
+                        <th>Canal</th>
+                        <th>Ultima abertura</th>
+                        <th>Status</th>
+                        <th>Acoes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for link in recent_links %}
+                        <tr>
+                            <td>
+                                <p class="font-semibold text-slate-900">{{ link.guest_name or "Nao informado" }}</p>
+                                <p class="mt-1 text-xs text-slate-500">{{ link.flat.display_name }}</p>
+                            </td>
+                            <td>
+                                {% if link.reservation %}
+                                    {{ link.reservation.checkin_date|date_label }} a {{ link.reservation.checkout_date|date_label }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td>{{ link.sent_channel }}</td>
+                            <td>{{ link.last_guest_opened_at|datetime_label }}</td>
+                            <td>
+                                {% if link.confirmation %}
+                                    <span class="chip chip-success">Confirmado</span>
+                                {% elif link.first_guest_opened_at %}
+                                    <span class="chip chip-warning">Aberto sem confirmar</span>
+                                {% elif link.status == 'expired' %}
+                                    <span class="chip chip-neutral">Expirado</span>
+                                {% else %}
+                                    <span class="chip chip-info">Aguardando abertura</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="flex flex-wrap gap-3">
+                                    <a href="{{ url_for('link_details', link_id=link.id) }}" class="muted-link">Detalhes</a>
+                                    <a href="{{ url_for('public_checkin', token=link.token, preview='admin') }}" target="_blank" rel="noreferrer" class="text-sm font-semibold text-slate-600 transition hover:text-slate-900">Prever</a>
+                                </div>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center text-slate-500">Nenhum link gerado ainda.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
 </section>
 
 <script>
-    const flatCatalog = {
-        {% for flat in flats %}
-            "{{ flat.id }}": {
-                name: {{ flat.display_name|tojson }},
-                checkinTime: {{ flat.checkin_time|tojson }},
-                checkoutTime: {{ flat.checkout_time|tojson }},
-                wifiName: {{ flat.wifi_name|tojson }},
-                wifiPassword: {{ flat.wifi_password|tojson }},
-                houseRules: {{ flat.house_rules|tojson }}
-            }{% if not loop.last %},{% endif %}
-        {% endfor %}
-    };
-
     const reservationsCatalog = {{ reservations_catalog|tojson }};
-
+    const initialReservationId = {{ generated_link.reservation_id if generated_link and generated_link.reservation_id else 'null' }};
     const reservationField = document.getElementById("reservation_id");
+    const reservationSearch = document.getElementById("reservation-search");
+    const reservationOptions = Array.from(document.querySelectorAll("[data-reservation-option]"));
     const platformField = document.getElementById("platform");
     const generatedLinkField = document.getElementById("generated-link");
     const copyLinkButton = document.getElementById("copy-link-button");
+    const sendWhatsAppButton = document.getElementById("send-whatsapp-button");
+
+    const selectedReservationEmpty = document.getElementById("selected-reservation-empty");
+    const selectedReservationCard = document.getElementById("selected-reservation-card");
+    const selectedReservationName = document.getElementById("selected-reservation-name");
+    const selectedReservationFlat = document.getElementById("selected-reservation-flat");
+    const selectedReservationDates = document.getElementById("selected-reservation-dates");
 
     const previewFlatName = document.getElementById("preview-flat-name");
     const previewGuestName = document.getElementById("preview-guest-name");
@@ -242,12 +351,13 @@
     const previewCheckoutDate = document.getElementById("preview-checkout-date");
     const previewWifiName = document.getElementById("preview-wifi-name");
     const previewWifiPassword = document.getElementById("preview-wifi-password");
-    const previewHouseRules = document.getElementById("preview-house-rules");
-    const previewPlatform = document.getElementById("preview-platform");
+    const previewParking = document.getElementById("preview-parking");
+    const previewAccess = document.getElementById("preview-access");
+    const previewSupport = document.getElementById("preview-support");
 
     function formatDate(rawValue) {
         if (!rawValue) {
-            return "Data nao selecionada";
+            return "Sem data";
         }
 
         const value = new Date(`${rawValue}T00:00:00`);
@@ -258,20 +368,60 @@
         });
     }
 
+    function firstLine(text) {
+        if (!text) {
+            return "";
+        }
+
+        return String(text).split("\n").map((line) => line.trim()).find(Boolean) || "";
+    }
+
+    function selectReservation(reservationId) {
+        reservationField.value = reservationId;
+        reservationOptions.forEach((option) => {
+            option.classList.toggle("reservation-option-active", option.dataset.id === String(reservationId));
+        });
+        renderPreview();
+    }
+
     function renderPreview() {
         const reservation = reservationsCatalog[reservationField.value] || null;
-        const selectedFlat = reservation ? flatCatalog[reservation.flat_id] : null;
 
-        previewFlatName.textContent = selectedFlat ? selectedFlat.name : "Selecione uma reserva";
-        previewGuestName.textContent = reservation ? `Bem-vindo, ${reservation.guest_name}` : "Bem-vindo";
-        previewCheckinTime.textContent = selectedFlat ? selectedFlat.checkinTime : "--:--";
-        previewCheckoutTime.textContent = selectedFlat ? selectedFlat.checkoutTime : "--:--";
-        previewCheckinDate.textContent = formatDate(reservation ? reservation.checkin_date : null);
-        previewCheckoutDate.textContent = formatDate(reservation ? reservation.checkout_date : null);
-        previewWifiName.textContent = selectedFlat ? selectedFlat.wifiName : "Selecione uma reserva";
-        previewWifiPassword.textContent = selectedFlat ? `Senha: ${selectedFlat.wifiPassword}` : "A senha aparecera aqui";
-        previewHouseRules.textContent = selectedFlat ? selectedFlat.houseRules : "Escolha uma reserva para visualizar as orientacoes enviadas ao hospede.";
-        previewPlatform.textContent = `Compartilhamento via ${platformField.value || "WhatsApp"}`;
+        if (!reservation) {
+            selectedReservationEmpty.classList.remove("hidden");
+            selectedReservationCard.classList.add("hidden");
+
+            previewFlatName.textContent = "Selecione uma reserva";
+            previewGuestName.textContent = "Sem hospede selecionado";
+            previewCheckinTime.textContent = "--:--";
+            previewCheckoutTime.textContent = "--:--";
+            previewCheckinDate.textContent = "Sem data";
+            previewCheckoutDate.textContent = "Sem data";
+            previewWifiName.textContent = "Selecione uma reserva";
+            previewWifiPassword.textContent = "A senha aparecera aqui";
+            previewParking.textContent = "A orientacao principal aparecera aqui.";
+            previewAccess.textContent = "A instrucao de acesso ao predio aparecera aqui.";
+            previewSupport.textContent = "Contato de fallback nao definido.";
+            return;
+        }
+
+        selectedReservationEmpty.classList.add("hidden");
+        selectedReservationCard.classList.remove("hidden");
+        selectedReservationName.textContent = reservation.guest_name;
+        selectedReservationFlat.textContent = reservation.flat_name;
+        selectedReservationDates.textContent = `${formatDate(reservation.checkin_date)} a ${formatDate(reservation.checkout_date)}`;
+
+        previewFlatName.textContent = reservation.flat_name;
+        previewGuestName.textContent = `Hospede: ${reservation.guest_name}`;
+        previewCheckinTime.textContent = reservation.checkin_time;
+        previewCheckoutTime.textContent = reservation.checkout_time;
+        previewCheckinDate.textContent = formatDate(reservation.checkin_date);
+        previewCheckoutDate.textContent = formatDate(reservation.checkout_date);
+        previewWifiName.textContent = reservation.wifi_name;
+        previewWifiPassword.textContent = `Senha: ${reservation.wifi_password}`;
+        previewParking.textContent = firstLine(reservation.parking_instructions) || "Sem estacionamento cadastrado.";
+        previewAccess.textContent = firstLine(reservation.building_access) || reservation.door_code || "Sem acesso cadastrado.";
+        previewSupport.textContent = reservation.fallback_contact || "Contato de fallback nao definido.";
     }
 
     async function copyGeneratedLink() {
@@ -280,18 +430,54 @@
         }
 
         await navigator.clipboard.writeText(generatedLinkField.value);
+        const originalText = copyLinkButton.textContent;
         copyLinkButton.textContent = "Copiado";
         window.setTimeout(() => {
-            copyLinkButton.textContent = "Copiar";
+            copyLinkButton.textContent = originalText;
         }, 1500);
     }
 
-    [reservationField, platformField].forEach((field) => {
-        field.addEventListener("input", renderPreview);
-        field.addEventListener("change", renderPreview);
+    async function openWhatsAppForLink() {
+        if (!sendWhatsAppButton) {
+            return;
+        }
+
+        const linkId = sendWhatsAppButton.dataset.linkId;
+        const response = await fetch(`/admin/links/${linkId}/mark-sent`, { method: "POST" });
+        if (!response.ok) {
+            return;
+        }
+
+        const payload = await response.json();
+        if (payload.whatsapp_url) {
+            window.open(payload.whatsapp_url, "_blank", "noopener");
+            sendWhatsAppButton.textContent = "WhatsApp aberto";
+        }
+    }
+
+    reservationOptions.forEach((option) => {
+        option.addEventListener("click", () => {
+            selectReservation(option.dataset.id);
+        });
+    });
+
+    reservationSearch.addEventListener("input", () => {
+        const searchTerm = reservationSearch.value.trim().toLowerCase();
+        reservationOptions.forEach((option) => {
+            const shouldShow = !searchTerm || option.dataset.search.includes(searchTerm);
+            option.classList.toggle("hidden", !shouldShow);
+        });
     });
 
     copyLinkButton.addEventListener("click", copyGeneratedLink);
-    renderPreview();
+    if (sendWhatsAppButton) {
+        sendWhatsAppButton.addEventListener("click", openWhatsAppForLink);
+    }
+
+    if (initialReservationId && reservationsCatalog[String(initialReservationId)]) {
+        selectReservation(String(initialReservationId));
+    } else {
+        renderPreview();
+    }
 </script>
 {% endblock %}

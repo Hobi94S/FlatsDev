@@ -3,107 +3,383 @@
 {% block title %}Check-in | {{ link.flat.display_name }} | Campina Flats{% endblock %}
 
 {% block content %}
-<section class="mx-auto grid w-full max-w-5xl gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-    <div class="surface-card p-7 sm:p-8">
-        <div class="brand-lockup brand-lockup-hero">
-            <img src="{{ url_for('brand_logo') }}" alt="Campina Flats" class="brand-logo brand-logo-checkin">
-            <div class="brand-text-group">
-                <p class="brand-name brand-name-hero">Campina Flats</p>
-                <p class="brand-support-text">Check-in online</p>
-            </div>
+{% set parking_lines = link.flat.parking_instructions|nonempty_lines %}
+{% set arrival_lines = link.flat.arrival_steps|nonempty_lines %}
+{% set access_lines = link.flat.building_access|nonempty_lines %}
+{% set rule_lines = link.flat.house_rules|nonempty_lines %}
+
+<section class="mx-auto w-full max-w-5xl space-y-6">
+    {% if preview_mode %}
+        <div class="surface-card-subtle px-5 py-4 text-sm font-semibold text-blue-700">
+            Pre-visualizacao interna. Esta abertura nao conta como visita do hospede.
         </div>
-        <h1 class="headline-xl">Bem-vindo{% if link.guest_name %}, {{ link.guest_name }}{% endif %}</h1>
-        <p class="body-copy">
-            Esta pagina centraliza as informacoes da sua hospedagem em <span class="font-semibold text-slate-900">{{ link.flat.display_name }}</span>.
-            Leia tudo com atencao antes da chegada.
-        </p>
+    {% endif %}
 
-        <div class="mt-8 grid gap-4 sm:grid-cols-2">
-            <div class="metric-card p-5">
-                <p class="metric-label">Check-in</p>
-                <p class="mt-3 text-2xl font-semibold tracking-[-0.03em] text-slate-900">{{ link.flat.checkin_time }}</p>
-            </div>
-            <div class="metric-card p-5">
-                <p class="metric-label">Check-out</p>
-                <p class="mt-3 text-2xl font-semibold tracking-[-0.03em] text-slate-900">{{ link.flat.checkout_time }}</p>
-            </div>
-        </div>
-
-        <div class="info-tile mt-6">
-            <p class="metric-label">Endereco</p>
-            <p class="mt-3 text-sm leading-7 text-slate-600">{{ link.flat.address }}</p>
-        </div>
-
-        <div class="info-tile mt-6">
-            <p class="metric-label">Regras da hospedagem</p>
-            <div class="mt-3 whitespace-pre-line text-sm leading-7 text-slate-600">{{ link.flat.house_rules }}</div>
-        </div>
-
-        {% if link.reservation %}
-            <div class="info-tile mt-6">
-                <p class="metric-label">Periodo da reserva</p>
-                <p class="mt-3 text-sm leading-7 text-slate-600">{{ link.reservation.checkin_date|date_label }} a {{ link.reservation.checkout_date|date_label }}</p>
-            </div>
-        {% endif %}
-    </div>
-
-    <div class="space-y-6">
-        <div class="surface-card p-7">
-            <p class="kicker">Wi-Fi</p>
-            <div class="mt-5 space-y-4 text-sm">
-                <div>
-                    <p class="text-slate-500">Rede</p>
-                    <p class="mt-1 font-semibold text-slate-900">{{ link.flat.wifi_name }}</p>
-                </div>
-                <div>
-                    <p class="text-slate-500">Senha</p>
-                    <p class="mt-1 font-semibold text-slate-900">{{ link.flat.wifi_password }}</p>
+    {% if link_unavailable %}
+        <div class="surface-card p-8">
+            <div class="brand-lockup brand-lockup-hero">
+                <img src="{{ url_for('brand_logo') }}" alt="Campina Flats" class="brand-logo brand-logo-checkin">
+                <div class="brand-text-group">
+                    <p class="brand-name brand-name-hero">Campina Flats</p>
+                    <p class="brand-support-text">Check-in online</p>
                 </div>
             </div>
+            <h1 class="headline-xl">Este link nao esta mais disponivel</h1>
+            <p class="body-copy">
+                O link de check-in foi expirado ou substituido. Entre em contato com a operacao para receber o link atualizado.
+            </p>
+            <div class="support-card mt-8">
+                <p class="text-sm font-semibold uppercase tracking-[0.2em] text-slate-300">Suporte</p>
+                <p class="mt-3 text-lg font-semibold">Se tiver dificuldade para entrar, fale conosco</p>
+                <p class="mt-3 text-sm leading-7 text-slate-200">{{ link.flat.fallback_contact }}</p>
+            </div>
         </div>
-
-        <div class="surface-card p-7">
-            <p class="kicker">Estacionamento</p>
-            <p class="mt-5 text-sm leading-7 text-slate-600">{{ link.flat.parking_instructions }}</p>
-        </div>
-
-        <div class="surface-card p-7">
-            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                    <p class="kicker">Localizacao</p>
-                    <p class="mt-3 max-w-sm text-sm leading-7 text-slate-600">Visualize o ponto no mapa e abra a rota externa quando precisar chegar ao flat.</p>
+    {% else %}
+        <div class="surface-card overflow-hidden p-7 sm:p-8">
+            <div class="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
+                <div class="max-w-2xl">
+                    <div class="brand-lockup brand-lockup-hero">
+                        <img src="{{ url_for('brand_logo') }}" alt="Campina Flats" class="brand-logo brand-logo-checkin">
+                        <div class="brand-text-group">
+                            <p class="brand-name brand-name-hero">Campina Flats</p>
+                            <p class="brand-support-text">Check-in online</p>
+                        </div>
+                    </div>
+                    <p class="kicker mt-8">3 coisas importantes antes da chegada</p>
+                    <h1 class="headline-xl">Tudo o que voce precisa para entrar sem mandar mensagem</h1>
+                    <p class="body-copy">
+                        Bem-vindo{% if link.guest_name %}, {{ link.guest_name }}{% endif %}. Aqui estao os dados da sua hospedagem em
+                        <span class="font-semibold text-slate-900">{{ link.flat.display_name }}</span>.
+                    </p>
                 </div>
-                <a href="{{ maps_directions_url }}" target="_blank" rel="noreferrer" class="muted-link sm:shrink-0">
-                    Abrir no Google Maps
-                </a>
-            </div>
-            <div class="map-embed-shell map-embed-shell-compact mt-5">
-                <iframe
-                    src="{{ maps_embed_url }}"
-                    class="map-embed-frame map-embed-frame-compact"
-                    loading="lazy"
-                    allowfullscreen
-                    referrerpolicy="no-referrer-when-downgrade"></iframe>
+
+                <div class="grid w-full max-w-xl gap-3 sm:grid-cols-2">
+                    <div class="quick-fact quick-fact-strong">
+                        <p class="metric-label">Check-in</p>
+                        <p class="mt-3 text-2xl font-semibold tracking-[-0.03em] text-slate-900">{{ link.flat.checkin_time }}</p>
+                        {% if link.reservation %}
+                            <p class="mt-2 text-sm text-slate-600">{{ link.reservation.checkin_date|date_label }}</p>
+                        {% endif %}
+                    </div>
+                    <div class="quick-fact">
+                        <p class="metric-label">Check-out</p>
+                        <p class="mt-3 text-2xl font-semibold tracking-[-0.03em] text-slate-900">{{ link.flat.checkout_time }}</p>
+                        {% if link.reservation %}
+                            <p class="mt-2 text-sm text-slate-600">{{ link.reservation.checkout_date|date_label }}</p>
+                        {% endif %}
+                    </div>
+                    <div class="quick-fact quick-fact-strong">
+                        <div class="flex items-start justify-between gap-3">
+                            <div>
+                                <p class="metric-label">Wi-Fi</p>
+                                <p class="mt-3 text-base font-semibold text-slate-900">{{ link.flat.wifi_name }}</p>
+                                <p class="mt-1 text-sm text-slate-600">Senha: {{ link.flat.wifi_password }}</p>
+                            </div>
+                            <svg class="h-6 w-6 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25A16.33 16.33 0 0 1 12 5.25a16.33 16.33 0 0 1 9.75 3m-16.5 4.5A10.97 10.97 0 0 1 12 10.5c2.56 0 4.91.877 6.75 2.25m-12 4.5A5.57 5.57 0 0 1 12 15.75c1.45 0 2.77.553 3.75 1.5M12 20.25h.008v.008H12v-.008Z" />
+                            </svg>
+                        </div>
+                        <div class="mt-4 flex flex-wrap gap-2">
+                            <button type="button" class="copy-chip" data-copy-text="{{ link.flat.wifi_name }}" data-event="wifi_name_copy">Copiar rede</button>
+                            <button type="button" class="copy-chip" data-copy-text="{{ link.flat.wifi_password }}" data-event="wifi_password_copy">Copiar senha</button>
+                        </div>
+                    </div>
+                    <div class="quick-fact">
+                        <div class="flex items-start justify-between gap-3">
+                            <div>
+                                <p class="metric-label">Estacionamento</p>
+                                <p class="mt-3 text-sm font-semibold text-slate-900">{{ parking_lines|first if parking_lines else "Veja as instrucoes abaixo" }}</p>
+                            </div>
+                            <svg class="h-6 w-6 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 16.5V6.75h5.25a3 3 0 0 1 0 6H8.25m0 0h4.5" />
+                            </svg>
+                        </div>
+                        <a href="#estacionamento" class="mt-4 inline-flex text-sm font-semibold text-blue-600">Ver estacionamento</a>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div class="surface-card p-7">
+        <nav class="guest-step-nav">
+            <a href="#chegada" class="guest-step-link">1. Chegada</a>
+            <a href="#estacionamento" class="guest-step-link">2. Estacionamento</a>
+            <a href="#acesso" class="guest-step-link">3. Como entrar</a>
+            <a href="#wifi" class="guest-step-link">4. Wi-Fi</a>
+            <a href="#regras" class="guest-step-link">5. Regras</a>
+            <a href="#suporte" class="guest-step-link">Ajuda</a>
+        </nav>
+
+        <section id="chegada" class="checkin-step">
+            <div class="flex items-start gap-4">
+                <span class="step-badge">1</span>
+                <div class="min-w-0 flex-1">
+                    <p class="kicker">Chegada</p>
+                    <h2 class="headline-lg">Confirme o local e o periodo da reserva</h2>
+                    <div class="mt-6 grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
+                        <div class="info-tile">
+                            <p class="metric-label">Endereco do flat</p>
+                            <p class="mt-3 text-sm leading-7 text-slate-700">{{ link.flat.address }}</p>
+                            <div class="mt-4 flex flex-wrap gap-2">
+                                <button type="button" class="copy-chip" data-copy-text="{{ link.flat.address }}" data-event="address_copy">Copiar endereco</button>
+                                <a href="{{ maps_directions_url }}" target="_blank" rel="noreferrer" class="copy-chip" data-event-link="maps_click">Abrir rota</a>
+                            </div>
+                        </div>
+                        <div class="info-tile">
+                            <p class="metric-label">Periodo</p>
+                            <p class="mt-3 text-sm leading-7 text-slate-700">
+                                {% if link.reservation %}
+                                    {{ link.reservation.checkin_date|date_label }} a {{ link.reservation.checkout_date|date_label }}
+                                {% else %}
+                                    Consulte a operacao se precisar confirmar as datas.
+                                {% endif %}
+                            </p>
+                            <p class="mt-4 text-sm leading-7 text-slate-600">
+                                Chegada a partir de <span class="font-semibold text-slate-900">{{ link.flat.checkin_time }}</span> e saida ate
+                                <span class="font-semibold text-slate-900">{{ link.flat.checkout_time }}</span>.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="estacionamento" class="checkin-step">
+            <div class="flex items-start gap-4">
+                <span class="step-badge">2</span>
+                <div class="min-w-0 flex-1">
+                    <p class="kicker">Estacionamento</p>
+                    <h2 class="headline-lg">Veja a instrução da vaga antes de chegar</h2>
+                    <div class="info-tile mt-6">
+                        <div class="space-y-3 text-sm leading-7 text-slate-700">
+                            {% for line in parking_lines %}
+                                <p>{{ line }}</p>
+                            {% else %}
+                                <p>Sem orientacoes de estacionamento cadastradas.</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="acesso" class="checkin-step">
+            <div class="flex items-start gap-4">
+                <span class="step-badge">3</span>
+                <div class="min-w-0 flex-1">
+                    <p class="kicker">Como entrar</p>
+                    <h2 class="headline-lg">Siga este passo a passo para acessar o flat</h2>
+                    <div class="mt-6 grid gap-4 lg:grid-cols-2">
+                        <div class="info-tile">
+                            <p class="metric-label">Acesso ao predio</p>
+                            <div class="mt-3 space-y-3 text-sm leading-7 text-slate-700">
+                                {% for line in access_lines %}
+                                    <p>{{ line }}</p>
+                                {% else %}
+                                    <p>Sem instrucoes de acesso ao predio.</p>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="info-tile">
+                            <p class="metric-label">Porta do flat</p>
+                            <p class="mt-3 text-base font-semibold text-slate-900">{{ link.flat.door_code }}</p>
+                            <button type="button" class="copy-chip mt-4" data-copy-text="{{ link.flat.door_code }}" data-event="access_copy">Copiar instrucao principal</button>
+                        </div>
+                    </div>
+                    <div class="info-tile mt-4">
+                        <p class="metric-label">Passo a passo</p>
+                        <div class="mt-4 space-y-3">
+                            {% for line in arrival_lines %}
+                                <div class="flex items-start gap-3">
+                                    <span class="mt-1 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white">{{ loop.index }}</span>
+                                    <p class="text-sm leading-7 text-slate-700">{{ line }}</p>
+                                </div>
+                            {% else %}
+                                <p class="text-sm leading-7 text-slate-700">Sem passo a passo de chegada cadastrado.</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="wifi" class="checkin-step">
+            <div class="flex items-start gap-4">
+                <span class="step-badge">4</span>
+                <div class="min-w-0 flex-1">
+                    <p class="kicker">Wi-Fi</p>
+                    <h2 class="headline-lg">Copie a rede e a senha sem erro</h2>
+                    <div class="mt-6 grid gap-4 sm:grid-cols-2">
+                        <div class="info-tile">
+                            <p class="metric-label">Rede</p>
+                            <p class="mt-3 text-lg font-semibold text-slate-900">{{ link.flat.wifi_name }}</p>
+                            <button type="button" class="copy-chip mt-4" data-copy-text="{{ link.flat.wifi_name }}" data-event="wifi_name_copy">Copiar rede</button>
+                        </div>
+                        <div class="info-tile">
+                            <p class="metric-label">Senha</p>
+                            <p class="mt-3 text-lg font-semibold text-slate-900">{{ link.flat.wifi_password }}</p>
+                            <button type="button" class="copy-chip mt-4" data-copy-text="{{ link.flat.wifi_password }}" data-event="wifi_password_copy">Copiar senha</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="regras" class="checkin-step">
+            <div class="flex items-start gap-4">
+                <span class="step-badge">5</span>
+                <div class="min-w-0 flex-1">
+                    <p class="kicker">Regras</p>
+                    <h2 class="headline-lg">O que voce precisa respeitar durante a hospedagem</h2>
+                    <div class="mt-6 grid gap-3 sm:grid-cols-2">
+                        {% for line in rule_lines %}
+                            <div class="rule-card">
+                                <p class="text-sm leading-7 text-slate-700">{{ line }}</p>
+                            </div>
+                        {% else %}
+                            <div class="rule-card sm:col-span-2">
+                                <p class="text-sm leading-7 text-slate-700">Sem regras cadastradas.</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="suporte" class="support-card">
+            <p class="text-sm font-semibold uppercase tracking-[0.24em] text-slate-300">Se algo der errado</p>
+            <h2 class="mt-3 text-2xl font-semibold tracking-[-0.03em]">Se tiver dificuldade para entrar, fale conosco</h2>
+            <p class="mt-4 max-w-2xl text-sm leading-7 text-slate-200">
+                Antes de chamar, confira o bloco "Como entrar". Se ainda assim algo nao funcionar, use este contato:
+            </p>
+            <div class="mt-5 flex flex-wrap items-center gap-3">
+                <span class="rounded-full bg-white/12 px-4 py-2 text-sm font-semibold">{{ link.flat.fallback_contact }}</span>
+                <a href="{{ maps_directions_url }}" target="_blank" rel="noreferrer" class="copy-chip" data-event-link="maps_click">Abrir rota no Google Maps</a>
+            </div>
+        </section>
+
+        <section class="surface-card p-7">
             {% if link.confirmation %}
-                <p class="inline-flex rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-700">Ja confirmado</p>
+                <p class="inline-flex rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-700">Confirmacao registrada</p>
                 <p class="mt-4 text-sm leading-7 text-slate-600">
-                    Sua confirmacao foi registrada em <span class="font-semibold text-slate-900">{{ link.confirmation.agreed_at|datetime_label }}</span>. Obrigado.
+                    Sua leitura foi registrada em <span class="font-semibold text-slate-900">{{ link.confirmation.agreed_at|datetime_label }}</span>.
                 </p>
             {% else %}
-                <p class="text-sm leading-7 text-slate-600">
-                    Depois de ler as informacoes acima, clique no botao abaixo para confirmar que leu e concorda com as instrucoes da hospedagem.
-                </p>
-                <form action="{{ url_for('confirm_checkin', token=link.token) }}" method="post" class="mt-5">
-                    <button type="submit" class="inline-flex w-full items-center justify-center rounded-2xl bg-emerald-400 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-emerald-300">
-                        Li e concordo
-                    </button>
+                <p class="kicker">Confirmacao</p>
+                <h2 class="headline-lg">Antes de fechar, confirme que voce leu tudo</h2>
+                <form id="checkin-confirmation-form" action="{{ url_for('confirm_checkin', token=link.token) }}" method="post" class="mt-6">
+                    <label class="flex items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm leading-7 text-slate-700">
+                        <input id="acknowledged" type="checkbox" name="acknowledged" value="yes" class="mt-1 h-5 w-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500">
+                        <span>Li as instrucoes acima e estou ciente de horarios, acesso, Wi-Fi, estacionamento e regras da hospedagem.</span>
+                    </label>
                 </form>
+            {% endif %}
+        </section>
+    {% endif %}
+</section>
+
+{% if not link_unavailable %}
+    <div class="sticky-confirm-bar">
+        <div class="sticky-confirm-inner">
+            {% if link.confirmation %}
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <p class="text-sm font-semibold text-slate-900">Tudo certo.</p>
+                        <p class="mt-1 text-sm text-slate-600">Seu check-in ja foi confirmado.</p>
+                    </div>
+                    <span class="inline-flex rounded-full bg-emerald-100 px-4 py-2 text-sm font-semibold text-emerald-700">Li e estou ciente</span>
+                </div>
+            {% else %}
+                <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <p class="text-sm font-semibold text-slate-900">Falta um passo para concluir</p>
+                        <p class="mt-1 text-sm text-slate-600">Marque a caixa acima e confirme sua leitura.</p>
+                    </div>
+                    <button id="sticky-confirm-button" type="submit" form="checkin-confirmation-form" disabled class="btn-primary w-full sm:w-auto disabled:cursor-not-allowed disabled:opacity-50">
+                        Li e estou ciente
+                    </button>
+                </div>
             {% endif %}
         </div>
     </div>
-</section>
+{% endif %}
+
+<script>
+    const confirmationCheckbox = document.getElementById("acknowledged");
+    const stickyConfirmButton = document.getElementById("sticky-confirm-button");
+    const eventUrl = {{ url_for('record_checkin_event', token=link.token)|tojson }};
+    const isPreviewMode = {{ preview_mode|tojson }};
+    const trackedScrollMarks = new Set();
+
+    function postEvent(eventName, extra = {}) {
+        if (isPreviewMode) {
+            return;
+        }
+
+        fetch(eventUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ event: eventName, ...extra })
+        }).catch(() => {});
+    }
+
+    async function copyText(button) {
+        const text = button.dataset.copyText || "";
+        if (!text) {
+            return;
+        }
+
+        await navigator.clipboard.writeText(text);
+        if (button.dataset.event) {
+            postEvent(button.dataset.event);
+        }
+        const originalText = button.textContent;
+        button.textContent = "Copiado";
+        window.setTimeout(() => {
+            button.textContent = originalText;
+        }, 1400);
+    }
+
+    function updateConfirmationState() {
+        if (!confirmationCheckbox || !stickyConfirmButton) {
+            return;
+        }
+
+        stickyConfirmButton.disabled = !confirmationCheckbox.checked;
+    }
+
+    function trackScrollDepth() {
+        const scrollableHeight = document.documentElement.scrollHeight - window.innerHeight;
+        if (scrollableHeight <= 0) {
+            return;
+        }
+
+        const percent = Math.min(100, Math.round((window.scrollY / scrollableHeight) * 100));
+        [25, 50, 75, 100].forEach((mark) => {
+            if (percent >= mark && !trackedScrollMarks.has(mark)) {
+                trackedScrollMarks.add(mark);
+                postEvent("scroll_depth", { scroll_depth: mark });
+            }
+        });
+    }
+
+    document.querySelectorAll("[data-copy-text]").forEach((button) => {
+        button.addEventListener("click", () => {
+            copyText(button);
+        });
+    });
+
+    document.querySelectorAll("[data-event-link]").forEach((linkElement) => {
+        linkElement.addEventListener("click", () => {
+            postEvent(linkElement.dataset.eventLink);
+        });
+    });
+
+    if (confirmationCheckbox) {
+        confirmationCheckbox.addEventListener("change", updateConfirmationState);
+        updateConfirmationState();
+    }
+
+    window.addEventListener("scroll", trackScrollDepth, { passive: true });
+    trackScrollDepth();
+</script>
 {% endblock %}

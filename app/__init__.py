@@ -37,6 +37,10 @@ def register_template_filters(app: Flask) -> None:
         "Occupied": "Ocupado",
         "Upcoming": "Proxima",
         "Available": "Disponivel",
+        "active": "Ativo",
+        "replaced": "Substituido",
+        "revoked": "Revogado",
+        "expired": "Expirado",
     }
 
     @app.template_filter("date_label")
@@ -59,3 +63,10 @@ def register_template_filters(app: Flask) -> None:
             return "-"
 
         return status_labels.get(value, value)
+
+    @app.template_filter("nonempty_lines")
+    def nonempty_lines(value: str | None) -> list[str]:
+        if not value:
+            return []
+
+        return [line.strip() for line in value.splitlines() if line.strip()]

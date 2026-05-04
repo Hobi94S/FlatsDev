@@ -91,6 +91,14 @@ DEFAULT_HOUSE_RULES = (
 DEFAULT_WIFI_NAME = "FlatsDev"
 DEFAULT_WIFI_PASSWORD = "alterar-senha"
 DEFAULT_PARKING = "Consulte a recepcao ou a administracao para receber a vaga correta do quarto."
+DEFAULT_ARRIVAL_STEPS = (
+    "1. Confira o predio e o numero do quarto antes de sair.\n"
+    "2. Ao chegar, siga para a recepcao ou entrada principal.\n"
+    "3. Use as instrucoes de acesso ao predio e depois a senha da porta do flat."
+)
+DEFAULT_BUILDING_ACCESS = "Apresente-se na portaria e siga as orientacoes de acesso informadas no link."
+DEFAULT_DOOR_CODE = "Senha da fechadura digital a confirmar pela operacao."
+DEFAULT_FALLBACK_CONTACT = "WhatsApp da operacao"
 
 
 def initialize_database(app: Flask) -> None:
@@ -111,6 +119,10 @@ def apply_legacy_migrations() -> None:
         missing_flat_columns = {
             "building_name": "ALTER TABLE flats ADD COLUMN building_name VARCHAR(120)",
             "room_number": "ALTER TABLE flats ADD COLUMN room_number VARCHAR(40)",
+            "arrival_steps": "ALTER TABLE flats ADD COLUMN arrival_steps TEXT NOT NULL DEFAULT ''",
+            "building_access": "ALTER TABLE flats ADD COLUMN building_access TEXT NOT NULL DEFAULT ''",
+            "door_code": "ALTER TABLE flats ADD COLUMN door_code VARCHAR(120) NOT NULL DEFAULT ''",
+            "fallback_contact": "ALTER TABLE flats ADD COLUMN fallback_contact VARCHAR(120) NOT NULL DEFAULT ''",
         }
 
         for column_name, ddl in missing_flat_columns.items():
@@ -127,6 +139,20 @@ def apply_legacy_migrations() -> None:
             "reservation_id": "ALTER TABLE checkin_links ADD COLUMN reservation_id INTEGER REFERENCES reservations (id)",
             "view_count": "ALTER TABLE checkin_links ADD COLUMN view_count INTEGER NOT NULL DEFAULT 0",
             "last_viewed": "ALTER TABLE checkin_links ADD COLUMN last_viewed DATETIME",
+            "sent_channel": "ALTER TABLE checkin_links ADD COLUMN sent_channel VARCHAR(40) NOT NULL DEFAULT 'WhatsApp'",
+            "status": "ALTER TABLE checkin_links ADD COLUMN status VARCHAR(20) NOT NULL DEFAULT 'active'",
+            "expires_at": "ALTER TABLE checkin_links ADD COLUMN expires_at DATETIME",
+            "generated_by": "ALTER TABLE checkin_links ADD COLUMN generated_by VARCHAR(120)",
+            "sent_at": "ALTER TABLE checkin_links ADD COLUMN sent_at DATETIME",
+            "first_guest_opened_at": "ALTER TABLE checkin_links ADD COLUMN first_guest_opened_at DATETIME",
+            "last_guest_opened_at": "ALTER TABLE checkin_links ADD COLUMN last_guest_opened_at DATETIME",
+            "unique_guest_views": "ALTER TABLE checkin_links ADD COLUMN unique_guest_views INTEGER NOT NULL DEFAULT 0",
+            "admin_preview_count": "ALTER TABLE checkin_links ADD COLUMN admin_preview_count INTEGER NOT NULL DEFAULT 0",
+            "wifi_copy_count": "ALTER TABLE checkin_links ADD COLUMN wifi_copy_count INTEGER NOT NULL DEFAULT 0",
+            "address_copy_count": "ALTER TABLE checkin_links ADD COLUMN address_copy_count INTEGER NOT NULL DEFAULT 0",
+            "access_copy_count": "ALTER TABLE checkin_links ADD COLUMN access_copy_count INTEGER NOT NULL DEFAULT 0",
+            "maps_click_count": "ALTER TABLE checkin_links ADD COLUMN maps_click_count INTEGER NOT NULL DEFAULT 0",
+            "max_scroll_depth": "ALTER TABLE checkin_links ADD COLUMN max_scroll_depth INTEGER NOT NULL DEFAULT 0",
         }
 
         for column_name, ddl in missing_link_columns.items():
@@ -143,17 +169,28 @@ def backfill_flat_structure() -> None:
         if flat.building_name and flat.room_number:
             if flat.name != f"{flat.building_name} - {flat.room_number}":
                 flat.name = f"{flat.building_name} - {flat.room_number}"
-            continue
-
-        if " - " in flat.name:
-            building_name, room_number = flat.name.rsplit(" - ", 1)
-            flat.building_name = building_name.strip()
-            flat.room_number = room_number.strip()
         else:
-            flat.building_name = flat.name.strip()
-            flat.room_number = flat.room_number or "Sem numero"
+            if " - " in flat.name:
+                building_name, room_number = flat.name.rsplit(" - ", 1)
+                flat.building_name = building_name.strip()
+                flat.room_number = room_number.strip()
+            else:
+                flat.building_name = flat.name.strip()
+                flat.room_number = flat.room_number or "Sem numero"
 
         flat.name = f"{flat.building_name} - {flat.room_number}"
+
+        if not flat.arrival_steps:
+            flat.arrival_steps = DEFAULT_ARRIVAL_STEPS
+
+        if not flat.building_access:
+            flat.building_access = DEFAULT_BUILDING_ACCESS
+
+        if not flat.door_code:
+            flat.door_code = DEFAULT_DOOR_CODE
+
+        if not flat.fallback_contact:
+            flat.fallback_contact = DEFAULT_FALLBACK_CONTACT
 
 
 def remove_legacy_demo_flats() -> None:
@@ -199,6 +236,14 @@ def seed_flats() -> None:
             flat.room_number = flat_data["room_number"]
             flat.name = f"{flat_data['building_name']} - {flat_data['room_number']}"
             flat.address = flat_data["address"]
+            if not flat.arrival_steps:
+                flat.arrival_steps = DEFAULT_ARRIVAL_STEPS
+            if not flat.building_access:
+                flat.building_access = DEFAULT_BUILDING_ACCESS
+            if not flat.door_code:
+                flat.door_code = DEFAULT_DOOR_CODE
+            if not flat.fallback_contact:
+                flat.fallback_contact = DEFAULT_FALLBACK_CONTACT
             continue
 
         db.session.add(
@@ -217,5 +262,9 @@ def seed_flats() -> None:
                 wifi_name=DEFAULT_WIFI_NAME,
                 wifi_password=DEFAULT_WIFI_PASSWORD,
                 parking_instructions=DEFAULT_PARKING,
+                arrival_steps=DEFAULT_ARRIVAL_STEPS,
+                building_access=DEFAULT_BUILDING_ACCESS,
+                door_code=DEFAULT_DOOR_CODE,
+                fallback_contact=DEFAULT_FALLBACK_CONTACT,
             )
         )

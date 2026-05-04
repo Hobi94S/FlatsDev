@@ -56,7 +56,7 @@
 
             <div class="lg:pl-72">
                 <header class="admin-topbar sticky top-0 z-20 border-b border-slate-200/80">
-                    <div class="flex items-center justify-between px-5 py-5 sm:px-8 lg:px-10">
+                    <div class="flex items-center justify-between gap-4 px-5 py-4 sm:px-8 lg:px-10">
                         <div class="flex items-center gap-4">
                             <div class="brand-lockup brand-lockup-topbar">
                                 <img src="{{ url_for('brand_logo') }}" alt="Campina Flats" class="brand-logo brand-logo-topbar">
@@ -66,16 +66,12 @@
                                 </div>
                             </div>
                             <div>
-                                <h1 class="mt-1.5 text-[1.15rem] font-semibold tracking-[-0.035em] text-slate-950 sm:text-[1.3rem]">PAINEL INTERNO DE HOSPEDAGEM</h1>
+                                <h1 class="text-[1rem] font-semibold tracking-[-0.035em] text-slate-950 sm:text-[1.18rem]">PAINEL DE CHECK-IN</h1>
+                                <p class="mt-1 text-xs font-medium text-slate-500">Geracao, envio e acompanhamento sem perder contexto</p>
                             </div>
                         </div>
                         <div class="flex items-center gap-3">
-                            <button type="button" class="flex h-11 w-11 items-center justify-center rounded-full border border-slate-200/80 bg-white/90 text-slate-500 shadow-[0_10px_25px_-20px_rgba(15,23,42,0.3)] transition hover:border-blue-200 hover:text-blue-600">
-                                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M14.25 18.75a2.25 2.25 0 0 1-4.5 0m9-2.25H5.25l1.2-1.2a2.25 2.25 0 0 0 .66-1.59V10.5a4.875 4.875 0 1 1 9.75 0v3.21c0 .597.237 1.169.66 1.591l1.2 1.199Z" />
-                                </svg>
-                            </button>
-                            <div class="flex items-center gap-3 rounded-full border border-slate-200/80 bg-white/92 px-3 py-2 shadow-[0_10px_25px_-20px_rgba(15,23,42,0.3)]">
+                            <div class="hidden items-center gap-3 rounded-full border border-slate-200/80 bg-white/92 px-3 py-2 shadow-[0_10px_25px_-20px_rgba(15,23,42,0.3)] sm:flex">
                                 <div class="text-right">
                                     <p class="text-sm font-semibold tracking-[-0.02em] text-slate-900">{{ session.get('operator_username', 'admin') }}</p>
                                     <p class="text-xs font-medium text-slate-500">Administrador</p>
@@ -99,7 +95,7 @@
                         <a href="{{ url_for('reports_dashboard') }}" class="mobile-nav-link {{ 'mobile-nav-link-active' if request.endpoint == 'reports_dashboard' else '' }}">Relatorios</a>
                     </nav>
     {% else %}
-        <main class="public-shell min-h-screen px-4 py-8 text-slate-900 sm:px-6 lg:px-8">
+        <main class="public-shell min-h-screen px-4 py-8 pb-36 text-slate-900 sm:px-6 lg:px-8">
     {% endif %}
 
     {% with messages = get_flashed_messages(with_categories=true) %}

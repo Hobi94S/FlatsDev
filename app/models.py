@@ -22,6 +22,17 @@ class ReservationStatus:
         return (cls.BOOKED, cls.COMPLETED)
 
 
+class CheckinLinkStatus:
+    ACTIVE = "active"
+    REPLACED = "replaced"
+    REVOKED = "revoked"
+    EXPIRED = "expired"
+
+    @classmethod
+    def choices(cls) -> tuple[str, str, str, str]:
+        return (cls.ACTIVE, cls.REPLACED, cls.REVOKED, cls.EXPIRED)
+
+
 class Flat(db.Model):
     __tablename__ = "flats"
 
@@ -37,6 +48,10 @@ class Flat(db.Model):
     wifi_name: Mapped[str] = mapped_column(String(120), nullable=False)
     wifi_password: Mapped[str] = mapped_column(String(120), nullable=False)
     parking_instructions: Mapped[str] = mapped_column(Text, nullable=False)
+    arrival_steps: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    building_access: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    door_code: Mapped[str] = mapped_column(String(120), nullable=False, default="")
+    fallback_contact: Mapped[str] = mapped_column(String(120), nullable=False, default="")
     created_at: Mapped[datetime] = mapped_column(
         DateTime,
         nullable=False,
@@ -113,6 +128,24 @@ class CheckinLink(db.Model):
     guest_name: Mapped[str | None] = mapped_column(String(120), nullable=True)
     view_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     last_viewed: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    sent_channel: Mapped[str] = mapped_column(String(40), nullable=False, default="WhatsApp")
+    status: Mapped[str] = mapped_column(
+        String(20),
+        nullable=False,
+        default=CheckinLinkStatus.ACTIVE,
+    )
+    expires_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    generated_by: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    sent_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    first_guest_opened_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    last_guest_opened_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    unique_guest_views: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    admin_preview_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    wifi_copy_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    address_copy_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    access_copy_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    maps_click_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    max_scroll_depth: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     created_at: Mapped[datetime] = mapped_column(
         DateTime,
         nullable=False,

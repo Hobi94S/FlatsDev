@@ -5,61 +5,107 @@
 {% block content %}
 <section class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
     <div class="metric-card p-5">
-        <p class="metric-label">Links gerados</p>
-        <p class="metric-value">{{ total_links }}</p>
+        <p class="metric-label">Links ativos</p>
+        <p class="metric-value">{{ total_active_links }}</p>
     </div>
     <div class="metric-card p-5">
-        <p class="metric-label">Links confirmados</p>
-        <p class="metric-value text-emerald-600">{{ confirmed_links }}</p>
+        <p class="metric-label">Sem abertura</p>
+        <p class="metric-value text-blue-600">{{ links_without_open|length }}</p>
     </div>
     <div class="metric-card p-5">
-        <p class="metric-label">Reservas</p>
-        <p class="metric-value">{{ total_reservations }}</p>
+        <p class="metric-label">Abriu sem confirmar</p>
+        <p class="metric-value text-orange-500">{{ opened_without_confirmation|length }}</p>
     </div>
     <div class="metric-card p-5">
-        <p class="metric-label">Flats ocupados</p>
-        <p class="metric-value text-orange-500">{{ occupied_flats }}</p>
+        <p class="metric-label">Confirmou antes do check-in</p>
+        <p class="metric-value text-emerald-600">{{ confirmed_before_checkin }}</p>
+    </div>
+</section>
+
+<section class="mt-6 grid gap-6 xl:grid-cols-3">
+    <div class="surface-card p-7">
+        <p class="kicker">Excecao</p>
+        <h2 class="headline-lg">Reservas sem link</h2>
+        <div class="mt-7 space-y-3">
+            {% for reservation in reservations_without_link %}
+                <div class="surface-card-subtle p-4">
+                    <p class="font-semibold text-slate-900">{{ reservation.guest_name }}</p>
+                    <p class="mt-1 text-sm text-slate-500">{{ reservation.flat.display_name }}</p>
+                    <p class="mt-2 text-sm text-slate-600">{{ reservation.checkin_date|date_label }}</p>
+                </div>
+            {% else %}
+                <p class="text-sm text-slate-500">Nenhuma reserva sem link.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="surface-card p-7">
+        <p class="kicker">Excecao</p>
+        <h2 class="headline-lg">Links sem abertura</h2>
+        <div class="mt-7 space-y-3">
+            {% for link in links_without_open %}
+                <div class="surface-card-subtle p-4">
+                    <p class="font-semibold text-slate-900">{{ link.guest_name or "Nao informado" }}</p>
+                    <p class="mt-1 text-sm text-slate-500">{{ link.flat.display_name }}</p>
+                    <p class="mt-2 text-sm text-slate-600">Criado em {{ link.created_at|datetime_label }}</p>
+                </div>
+            {% else %}
+                <p class="text-sm text-slate-500">Nenhum link aguardando abertura.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="surface-card p-7">
+        <p class="kicker">Excecao</p>
+        <h2 class="headline-lg">Abriu e nao confirmou</h2>
+        <div class="mt-7 space-y-3">
+            {% for link in opened_without_confirmation %}
+                <div class="surface-card-subtle p-4">
+                    <p class="font-semibold text-slate-900">{{ link.guest_name or "Nao informado" }}</p>
+                    <p class="mt-1 text-sm text-slate-500">{{ link.flat.display_name }}</p>
+                    <p class="mt-2 text-sm text-slate-600">Primeira abertura em {{ link.first_guest_opened_at|datetime_label }}</p>
+                </div>
+            {% else %}
+                <p class="text-sm text-slate-500">Nenhum link nessa situacao.</p>
+            {% endfor %}
+        </div>
     </div>
 </section>
 
 <section class="surface-card mt-6 p-7">
     <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
-            <p class="kicker">Relatorios</p>
-            <h2 class="headline-lg">Atividade recente de check-in</h2>
+            <p class="kicker">Ultimos links</p>
+            <h2 class="headline-lg">Visao operacional</h2>
         </div>
-        <p class="max-w-md text-sm leading-7 text-slate-500">Visao resumida das ultimas interacoes com links publicos.</p>
+        <p class="max-w-md text-sm leading-7 text-slate-500">Agora o relatorio mostra sinais de risco e leitura real, nao so volume bruto.</p>
     </div>
 
     <div class="table-shell mt-7">
         <table class="data-table">
             <thead>
                 <tr>
-                    <th>Flat</th>
                     <th>Hospede</th>
-                    <th>Criado em</th>
-                    <th>Visualizacoes</th>
-                    <th>Status</th>
+                    <th>Flat</th>
+                    <th>Canal</th>
+                    <th>Abertura</th>
+                    <th>Confirmacao</th>
+                    <th>Scroll max</th>
                 </tr>
             </thead>
             <tbody>
                 {% for link in latest_links %}
                     <tr>
-                        <td class="font-semibold text-slate-900">{{ link.flat.display_name }}</td>
-                        <td>{{ link.guest_name or "Nao informado" }}</td>
-                        <td>{{ link.created_at|datetime_label }}</td>
-                        <td>{{ link.view_count }}</td>
-                        <td>
-                            {% if link.confirmation %}
-                                <span class="chip chip-success">Confirmado</span>
-                            {% else %}
-                                <span class="chip chip-warning">Pendente</span>
-                            {% endif %}
-                        </td>
+                        <td class="font-semibold text-slate-900">{{ link.guest_name or "Nao informado" }}</td>
+                        <td>{{ link.flat.display_name }}</td>
+                        <td>{{ link.sent_channel }}</td>
+                        <td>{{ link.first_guest_opened_at|datetime_label }}</td>
+                        <td>{{ link.confirmation.agreed_at|datetime_label if link.confirmation else "Pendente" }}</td>
+                        <td>{{ link.max_scroll_depth }}%</td>
                     </tr>
                 {% else %}
                     <tr>
-                        <td colspan="5" class="text-center text-slate-500">Nenhum dado disponivel ainda.</td>
+                        <td colspan="6" class="text-center text-slate-500">Nenhum dado disponivel ainda.</td>
                     </tr>
                 {% endfor %}
             </tbody>

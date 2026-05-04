@@ -56,6 +56,26 @@
                 <textarea id="parking_instructions" name="parking_instructions" rows="4" required class="input-control" placeholder="Explique como acessar a garagem ou vaga"></textarea>
             </div>
 
+            <div>
+                <label for="building_access" class="mb-2.5 block text-sm font-semibold text-slate-700">Acesso ao predio</label>
+                <textarea id="building_access" name="building_access" rows="4" required class="input-control" placeholder="Portaria, elevador, torre, bloco ou liberacao necessaria"></textarea>
+            </div>
+
+            <div>
+                <label for="door_code" class="mb-2.5 block text-sm font-semibold text-slate-700">Senha ou instrucao da porta</label>
+                <input id="door_code" name="door_code" type="text" required class="input-control" placeholder="Ex: Fechadura digital 1407 | senha 4321#">
+            </div>
+
+            <div>
+                <label for="arrival_steps" class="mb-2.5 block text-sm font-semibold text-slate-700">Passo a passo de chegada</label>
+                <textarea id="arrival_steps" name="arrival_steps" rows="5" required class="input-control" placeholder="1. Chegue ao predio...&#10;2. Siga ate a recepcao...&#10;3. Use a senha da porta..."></textarea>
+            </div>
+
+            <div>
+                <label for="fallback_contact" class="mb-2.5 block text-sm font-semibold text-slate-700">Contato de suporte</label>
+                <input id="fallback_contact" name="fallback_contact" type="text" required class="input-control" placeholder="Ex: WhatsApp operacao +55 83 99999-9999">
+            </div>
+
             <button type="submit" class="btn-primary">
                 Adicionar flat
             </button>

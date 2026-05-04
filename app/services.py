@@ -9,7 +9,7 @@ from datetime import date, datetime, timedelta
 from sqlalchemy import select
 
 from .extensions import db
-from .models import CheckinLink, Flat, Reservation, ReservationStatus
+from .models import CheckinLink, CheckinLinkStatus, Flat, Reservation, ReservationStatus
 
 
 @dataclass(slots=True)
@@ -59,6 +59,10 @@ def normalize_flat_payload(
     wifi_name: str,
     wifi_password: str,
     parking_instructions: str,
+    arrival_steps: str,
+    building_access: str,
+    door_code: str,
+    fallback_contact: str,
 ) -> dict[str, str]:
     return {
         "building_name": building_name.strip(),
@@ -70,6 +74,10 @@ def normalize_flat_payload(
         "wifi_name": wifi_name.strip(),
         "wifi_password": wifi_password.strip(),
         "parking_instructions": parking_instructions.strip(),
+        "arrival_steps": arrival_steps.strip(),
+        "building_access": building_access.strip(),
+        "door_code": door_code.strip(),
+        "fallback_contact": fallback_contact.strip(),
     }
 
 
@@ -104,6 +112,18 @@ def validate_flat_payload(
 
     if not payload["parking_instructions"]:
         raise ValueError("As instrucoes de estacionamento sao obrigatorias.")
+
+    if not payload["arrival_steps"]:
+        raise ValueError("O passo a passo de chegada e obrigatorio.")
+
+    if not payload["building_access"]:
+        raise ValueError("As instrucoes de acesso ao predio sao obrigatorias.")
+
+    if not payload["door_code"]:
+        raise ValueError("O codigo, senha ou instrucoes da porta sao obrigatorios.")
+
+    if not payload["fallback_contact"]:
+        raise ValueError("O contato de suporte para chegada e obrigatorio.")
 
     existing_flat_query = (
         select(Flat)
@@ -154,6 +174,10 @@ def create_flat(
     wifi_name: str,
     wifi_password: str,
     parking_instructions: str,
+    arrival_steps: str,
+    building_access: str,
+    door_code: str,
+    fallback_contact: str,
 ) -> Flat:
     payload = validate_flat_payload(
         normalize_flat_payload(
@@ -166,6 +190,10 @@ def create_flat(
             wifi_name=wifi_name,
             wifi_password=wifi_password,
             parking_instructions=parking_instructions,
+            arrival_steps=arrival_steps,
+            building_access=building_access,
+            door_code=door_code,
+            fallback_contact=fallback_contact,
         )
     )
 
@@ -181,6 +209,10 @@ def create_flat(
         wifi_name=payload["wifi_name"],
         wifi_password=payload["wifi_password"],
         parking_instructions=payload["parking_instructions"],
+        arrival_steps=payload["arrival_steps"],
+        building_access=payload["building_access"],
+        door_code=payload["door_code"],
+        fallback_contact=payload["fallback_contact"],
     )
     db.session.add(flat)
     return flat
@@ -198,6 +230,10 @@ def update_flat(
     wifi_name: str,
     wifi_password: str,
     parking_instructions: str,
+    arrival_steps: str,
+    building_access: str,
+    door_code: str,
+    fallback_contact: str,
 ) -> Flat:
     payload = validate_flat_payload(
         normalize_flat_payload(
@@ -210,6 +246,10 @@ def update_flat(
             wifi_name=wifi_name,
             wifi_password=wifi_password,
             parking_instructions=parking_instructions,
+            arrival_steps=arrival_steps,
+            building_access=building_access,
+            door_code=door_code,
+            fallback_contact=fallback_contact,
         ),
         exclude_flat_id=flat.id,
     )
@@ -229,6 +269,10 @@ def update_flat(
     flat.wifi_name = payload["wifi_name"]
     flat.wifi_password = payload["wifi_password"]
     flat.parking_instructions = payload["parking_instructions"]
+    flat.arrival_steps = payload["arrival_steps"]
+    flat.building_access = payload["building_access"]
+    flat.door_code = payload["door_code"]
+    flat.fallback_contact = payload["fallback_contact"]
 
     return flat
 
@@ -403,6 +447,58 @@ def create_reservation(
     return reservation
 
 
-def mark_link_viewed(checkin_link: CheckinLink) -> None:
+def is_link_expired(checkin_link: CheckinLink, *, reference: datetime | None = None) -> bool:
+    if checkin_link.expires_at is None:
+        return False
+
+    reference = reference or datetime.utcnow()
+    return checkin_link.expires_at <= reference
+
+
+def mark_link_expired_if_needed(checkin_link: CheckinLink) -> None:
+    if (
+        checkin_link.status == CheckinLinkStatus.ACTIVE
+        and is_link_expired(checkin_link)
+    ):
+        checkin_link.status = CheckinLinkStatus.EXPIRED
+
+
+def mark_link_viewed(
+    checkin_link: CheckinLink,
+    *,
+    is_admin_preview: bool = False,
+    is_unique_guest: bool = False,
+) -> None:
+    current_time = datetime.utcnow()
+
+    if is_admin_preview:
+        checkin_link.admin_preview_count = (checkin_link.admin_preview_count or 0) + 1
+        return
+
     checkin_link.view_count = (checkin_link.view_count or 0) + 1
-    checkin_link.last_viewed = datetime.utcnow()
+    checkin_link.last_viewed = current_time
+    checkin_link.last_guest_opened_at = current_time
+
+    if checkin_link.first_guest_opened_at is None:
+        checkin_link.first_guest_opened_at = current_time
+
+    if is_unique_guest:
+        checkin_link.unique_guest_views = (checkin_link.unique_guest_views or 0) + 1
+
+
+def record_link_event(
+    checkin_link: CheckinLink,
+    event_name: str,
+    *,
+    scroll_depth: int | None = None,
+) -> None:
+    if event_name in {"wifi_name_copy", "wifi_password_copy"}:
+        checkin_link.wifi_copy_count = (checkin_link.wifi_copy_count or 0) + 1
+    elif event_name == "address_copy":
+        checkin_link.address_copy_count = (checkin_link.address_copy_count or 0) + 1
+    elif event_name == "access_copy":
+        checkin_link.access_copy_count = (checkin_link.access_copy_count or 0) + 1
+    elif event_name == "maps_click":
+        checkin_link.maps_click_count = (checkin_link.maps_click_count or 0) + 1
+    elif event_name == "scroll_depth" and scroll_depth is not None:
+        checkin_link.max_scroll_depth = max(checkin_link.max_scroll_depth or 0, scroll_depth)

@@ -3,6 +3,7 @@ from datetime import date, datetime
 from pathlib import Path
 
 from flask import Flask
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 from .db import initialize_database
 from .extensions import db
@@ -12,21 +13,40 @@ from .routes import register_routes
 def create_app() -> Flask:
     app = Flask(__name__, instance_relative_config=True)
     database_path = Path(app.instance_path) / "campina_flats.sqlite3"
+    database_uri = resolve_database_uri(database_path)
 
     app.config.from_mapping(
         SECRET_KEY=os.environ.get("SECRET_KEY", "campina-flats-dev-key"),
-        SQLALCHEMY_DATABASE_URI=f"sqlite:///{database_path.as_posix()}",
+        SQLALCHEMY_DATABASE_URI=database_uri,
         SQLALCHEMY_TRACK_MODIFICATIONS=False,
+        PREFERRED_URL_SCHEME="https" if os.environ.get("VERCEL") else "http",
     )
 
-    Path(app.instance_path).mkdir(parents=True, exist_ok=True)
+    if database_uri.startswith("sqlite:///"):
+        Path(app.instance_path).mkdir(parents=True, exist_ok=True)
 
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
     db.init_app(app)
     register_template_filters(app)
     initialize_database(app)
     register_routes(app)
 
     return app
+
+
+def resolve_database_uri(database_path: Path) -> str:
+    database_uri = os.environ.get("DATABASE_URL") or os.environ.get("POSTGRES_URL")
+    if database_uri:
+        return normalize_database_uri(database_uri)
+
+    return f"sqlite:///{database_path.as_posix()}"
+
+
+def normalize_database_uri(database_uri: str) -> str:
+    if database_uri.startswith("postgres://"):
+        return database_uri.replace("postgres://", "postgresql://", 1)
+
+    return database_uri
 
 
 def register_template_filters(app: Flask) -> None:

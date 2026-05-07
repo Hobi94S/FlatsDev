@@ -207,7 +207,14 @@ Open:
 - Flats dashboard: `http://127.0.0.1:5000/admin/flats`
 - Reservations: `http://127.0.0.1:5000/admin/reservations`
 
-## 8. Migration Notes
+## 8. Vercel Deployment Notes
+
+- `pyproject.toml` exposes the Flask app with `[project.scripts] app = "app.main:app"` for Vercel discovery.
+- The app also provides `app/main.py`, which exports a concrete Flask `app` instance in a Vercel-recognized entrypoint.
+- For production on Vercel, set `DATABASE_URL` or `POSTGRES_URL` to an external PostgreSQL database.
+- The local SQLite file in `instance/` is fine for development, but it should not be relied on for persistent Vercel storage.
+
+## 9. Migration Notes
 
 - The app now uses SQLAlchemy ORM while still storing data in SQLite.
 - A lightweight compatibility step adds new `checkin_links` columns (`reservation_id`, `view_count`, `last_viewed`) if the old database already exists.

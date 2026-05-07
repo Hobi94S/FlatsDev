@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import date, datetime, time
+from pathlib import Path
 from urllib.parse import quote_plus
 
 from flask import (
@@ -34,17 +35,29 @@ from .services import (
     update_flat,
 )
 
-ADMIN_USERNAME = "admin"
-ADMIN_PASSWORD = "admin"
 ADMIN_SESSION_KEY = "operator_authenticated"
 ADMIN_USER_SESSION_KEY = "operator_username"
 CHANNEL_OPTIONS = ("WhatsApp", "Booking", "Airbnb", "Instagram")
 
 
 def register_routes(app: Flask) -> None:
+    public_root = Path(app.root_path).parent / "public"
+
+    @app.get("/app.css")
+    def stylesheet():
+        return send_from_directory(public_root, "app.css", mimetype="text/css")
+
     @app.get("/brand/logo-light.png")
     def brand_logo():
-        return send_from_directory(app.root_path, "logoLight.png")
+        return send_from_directory(public_root / "brand", "logo-light.png")
+
+    @app.get("/favicon.svg")
+    def favicon_svg():
+        return send_from_directory(public_root, "favicon.svg", mimetype="image/svg+xml")
+
+    @app.get("/favicon.ico")
+    def favicon():
+        return redirect("/favicon.svg", code=307)
 
     @app.before_request
     def require_admin_authentication():
@@ -76,9 +89,12 @@ def register_routes(app: Flask) -> None:
         if request.method == "POST":
             password = request.form.get("password") or ""
 
-            if username == ADMIN_USERNAME and password == ADMIN_PASSWORD:
+            if (
+                username == app.config["ADMIN_USERNAME"]
+                and password == app.config["ADMIN_PASSWORD"]
+            ):
                 session[ADMIN_SESSION_KEY] = True
-                session[ADMIN_USER_SESSION_KEY] = ADMIN_USERNAME
+                session[ADMIN_USER_SESSION_KEY] = username
                 flash("Login realizado com sucesso.", "success")
                 return redirect(next_url or url_for("admin_dashboard"))
 

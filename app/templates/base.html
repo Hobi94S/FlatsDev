@@ -4,8 +4,9 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}Campina Flats{% endblock %}</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}">
+    <link rel="stylesheet" href="/app.css">
 </head>
 <body class="min-h-screen">
     {% if request.path.startswith("/admin") %}
@@ -13,7 +14,7 @@
             <aside class="admin-sidebar fixed inset-y-0 left-0 z-30 hidden w-72 flex-col border-r border-slate-200/80 px-6 py-7 lg:flex">
                 <a href="{{ url_for('admin_dashboard') }}" class="block">
                     <div class="brand-lockup brand-lockup-sidebar">
-                        <img src="{{ url_for('brand_logo') }}" alt="Campina Flats" class="brand-logo brand-logo-sidebar">
+                        <img src="/brand/logo-light.png" alt="Campina Flats" class="brand-logo brand-logo-sidebar">
                         <div class="brand-text-group">
                             <p class="brand-name brand-name-sidebar">Campina Flats</p>
                             <p class="brand-support-text">Operacao interna</p>
@@ -59,7 +60,7 @@
                     <div class="flex items-center justify-between gap-4 px-5 py-4 sm:px-8 lg:px-10">
                         <div class="flex items-center gap-4">
                             <div class="brand-lockup brand-lockup-topbar">
-                                <img src="{{ url_for('brand_logo') }}" alt="Campina Flats" class="brand-logo brand-logo-topbar">
+                                <img src="/brand/logo-light.png" alt="Campina Flats" class="brand-logo brand-logo-topbar">
                                 <div class="brand-text-group">
                                     <p class="brand-name brand-name-topbar">Campina Flats</p>
                                     <p class="brand-support-text">Operacao interna</p>

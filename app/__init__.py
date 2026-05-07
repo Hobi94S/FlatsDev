@@ -12,18 +12,25 @@ from .routes import register_routes
 
 
 def create_app() -> Flask:
-    app = Flask(__name__, instance_relative_config=True)
+    runtime_is_vercel = is_vercel_runtime()
+    app = Flask(__name__, instance_relative_config=True, static_folder=None)
     database_path = resolve_sqlite_database_path(app)
     database_uri = resolve_database_uri(database_path)
 
     app.config.from_mapping(
         SECRET_KEY=os.environ.get("SECRET_KEY", "campina-flats-dev-key"),
+        ADMIN_USERNAME=os.environ.get("ADMIN_USERNAME", "admin"),
+        ADMIN_PASSWORD=os.environ.get("ADMIN_PASSWORD", "admin"),
         SQLALCHEMY_DATABASE_URI=database_uri,
         SQLALCHEMY_TRACK_MODIFICATIONS=False,
-        PREFERRED_URL_SCHEME="https" if os.environ.get("VERCEL") else "http",
+        SQLALCHEMY_ENGINE_OPTIONS=resolve_engine_options(database_uri),
+        PREFERRED_URL_SCHEME="https" if runtime_is_vercel else "http",
+        SESSION_COOKIE_HTTPONLY=True,
+        SESSION_COOKIE_SAMESITE="Lax",
+        SESSION_COOKIE_SECURE=runtime_is_vercel,
     )
 
-    if database_uri.startswith("sqlite:///"):
+    if not runtime_is_vercel and database_uri.startswith("sqlite:///"):
         Path(app.instance_path).mkdir(parents=True, exist_ok=True)
 
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
@@ -56,9 +63,22 @@ def is_vercel_runtime() -> bool:
 
 def normalize_database_uri(database_uri: str) -> str:
     if database_uri.startswith("postgres://"):
-        return database_uri.replace("postgres://", "postgresql://", 1)
+        return database_uri.replace("postgres://", "postgresql+psycopg://", 1)
+
+    if database_uri.startswith("postgresql://"):
+        return database_uri.replace("postgresql://", "postgresql+psycopg://", 1)
 
     return database_uri
+
+
+def resolve_engine_options(database_uri: str) -> dict[str, object]:
+    if database_uri.startswith("sqlite:///"):
+        return {"connect_args": {"check_same_thread": False}}
+
+    return {
+        "pool_pre_ping": True,
+        "pool_recycle": 300,
+    }
 
 
 def register_template_filters(app: Flask) -> None:
@@ -102,6 +122,3 @@ def register_template_filters(app: Flask) -> None:
             return []
 
         return [line.strip() for line in value.splitlines() if line.strip()]
-
-
-app = create_app()

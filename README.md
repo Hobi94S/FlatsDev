@@ -25,11 +25,10 @@ Flask MVP for short-term rental operations with check-in standardization, public
 |   |-- __init__.py
 |   |-- db.py
 |   |-- extensions.py
+|   |-- main.py
 |   |-- models.py
 |   |-- routes.py
 |   |-- services.py
-|   |-- static/
-|   |   `-- app.css
 |   `-- templates/
 |       |-- admin.html
 |       |-- base.html
@@ -40,6 +39,14 @@ Flask MVP for short-term rental operations with check-in standardization, public
 |       `-- reservations.html
 |-- instance/
 |   `-- campina_flats.sqlite3
+|-- public/
+|   |-- app.css
+|   |-- favicon.svg
+|   `-- brand/
+|       `-- logo-light.png
+|-- index.py
+|-- main.py
+|-- pyproject.toml
 |-- requirements.txt
 |-- run.py
 `-- README.md
@@ -198,7 +205,7 @@ This avoids overlapping stays for the same flat.
 python -m venv .venv
 .venv\Scripts\activate
 pip install -r requirements.txt
-flask --app main run --debug
+flask --app index run --debug
 ```
 
 Open:
@@ -209,9 +216,11 @@ Open:
 
 ## 8. Vercel Deployment Notes
 
-- `pyproject.toml` exposes the Flask app with `[project.scripts] app = "app.main:app"` for Vercel discovery.
-- The app also provides `app/main.py`, which exports a concrete Flask `app` instance in a Vercel-recognized entrypoint.
+- `index.py` exposes a standard Flask entrypoint and `pyproject.toml` also points Vercel to `index:app`.
+- Runtime dependencies are declared in both `pyproject.toml` and `requirements.txt` so Vercel and local installs resolve the same stack.
+- Static assets used by the deployed app live in `public/`, which matches Vercel's Flask guidance.
 - For production on Vercel, set `DATABASE_URL` or `POSTGRES_URL` to an external PostgreSQL database.
+- Set `SECRET_KEY`, `ADMIN_USERNAME`, and `ADMIN_PASSWORD` in Vercel Project Settings for production credentials.
 - Without a database URL on Vercel, the app now falls back to a temporary SQLite file under the runtime temp directory so the function can boot, but that data is ephemeral.
 - The local SQLite file in `instance/` is fine for development, but it should not be relied on for persistent Vercel storage.
 

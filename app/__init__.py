@@ -70,3 +70,6 @@ def register_template_filters(app: Flask) -> None:
             return []
 
         return [line.strip() for line in value.splitlines() if line.strip()]
+
+
+app = create_app()

@@ -1,4 +1,5 @@
 import os
+import tempfile
 from datetime import date, datetime
 from pathlib import Path
 
@@ -12,7 +13,7 @@ from .routes import register_routes
 
 def create_app() -> Flask:
     app = Flask(__name__, instance_relative_config=True)
-    database_path = Path(app.instance_path) / "campina_flats.sqlite3"
+    database_path = resolve_sqlite_database_path(app)
     database_uri = resolve_database_uri(database_path)
 
     app.config.from_mapping(
@@ -40,6 +41,17 @@ def resolve_database_uri(database_path: Path) -> str:
         return normalize_database_uri(database_uri)
 
     return f"sqlite:///{database_path.as_posix()}"
+
+
+def resolve_sqlite_database_path(app: Flask) -> Path:
+    if is_vercel_runtime():
+        return Path(tempfile.gettempdir()) / "campina_flats.sqlite3"
+
+    return Path(app.instance_path) / "campina_flats.sqlite3"
+
+
+def is_vercel_runtime() -> bool:
+    return bool(os.environ.get("VERCEL") or os.environ.get("VERCEL_ENV"))
 
 
 def normalize_database_uri(database_uri: str) -> str:

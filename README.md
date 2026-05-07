@@ -212,6 +212,7 @@ Open:
 - `pyproject.toml` exposes the Flask app with `[project.scripts] app = "app.main:app"` for Vercel discovery.
 - The app also provides `app/main.py`, which exports a concrete Flask `app` instance in a Vercel-recognized entrypoint.
 - For production on Vercel, set `DATABASE_URL` or `POSTGRES_URL` to an external PostgreSQL database.
+- Without a database URL on Vercel, the app now falls back to a temporary SQLite file under the runtime temp directory so the function can boot, but that data is ephemeral.
 - The local SQLite file in `instance/` is fine for development, but it should not be relied on for persistent Vercel storage.
 
 ## 9. Migration Notes

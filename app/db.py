@@ -113,6 +113,7 @@ def initialize_database(app: Flask) -> None:
 def apply_legacy_migrations() -> None:
     inspector = inspect(db.engine)
     table_names = set(inspector.get_table_names())
+    datetime_type = "TIMESTAMP" if db.engine.dialect.name == "postgresql" else "DATETIME"
 
     if "flats" in table_names:
         existing_columns = {column["name"] for column in inspector.get_columns("flats")}
@@ -138,14 +139,14 @@ def apply_legacy_migrations() -> None:
         missing_link_columns = {
             "reservation_id": "ALTER TABLE checkin_links ADD COLUMN reservation_id INTEGER REFERENCES reservations (id)",
             "view_count": "ALTER TABLE checkin_links ADD COLUMN view_count INTEGER NOT NULL DEFAULT 0",
-            "last_viewed": "ALTER TABLE checkin_links ADD COLUMN last_viewed DATETIME",
+            "last_viewed": f"ALTER TABLE checkin_links ADD COLUMN last_viewed {datetime_type}",
             "sent_channel": "ALTER TABLE checkin_links ADD COLUMN sent_channel VARCHAR(40) NOT NULL DEFAULT 'WhatsApp'",
             "status": "ALTER TABLE checkin_links ADD COLUMN status VARCHAR(20) NOT NULL DEFAULT 'active'",
-            "expires_at": "ALTER TABLE checkin_links ADD COLUMN expires_at DATETIME",
+            "expires_at": f"ALTER TABLE checkin_links ADD COLUMN expires_at {datetime_type}",
             "generated_by": "ALTER TABLE checkin_links ADD COLUMN generated_by VARCHAR(120)",
-            "sent_at": "ALTER TABLE checkin_links ADD COLUMN sent_at DATETIME",
-            "first_guest_opened_at": "ALTER TABLE checkin_links ADD COLUMN first_guest_opened_at DATETIME",
-            "last_guest_opened_at": "ALTER TABLE checkin_links ADD COLUMN last_guest_opened_at DATETIME",
+            "sent_at": f"ALTER TABLE checkin_links ADD COLUMN sent_at {datetime_type}",
+            "first_guest_opened_at": f"ALTER TABLE checkin_links ADD COLUMN first_guest_opened_at {datetime_type}",
+            "last_guest_opened_at": f"ALTER TABLE checkin_links ADD COLUMN last_guest_opened_at {datetime_type}",
             "unique_guest_views": "ALTER TABLE checkin_links ADD COLUMN unique_guest_views INTEGER NOT NULL DEFAULT 0",
             "admin_preview_count": "ALTER TABLE checkin_links ADD COLUMN admin_preview_count INTEGER NOT NULL DEFAULT 0",
             "wifi_copy_count": "ALTER TABLE checkin_links ADD COLUMN wifi_copy_count INTEGER NOT NULL DEFAULT 0",

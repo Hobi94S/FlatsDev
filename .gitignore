@@ -2,3 +2,6 @@
 __pycache__/
 *.pyc
 instance/
+.env
+.env.*
+.vercel/

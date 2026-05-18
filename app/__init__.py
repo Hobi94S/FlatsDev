@@ -43,9 +43,13 @@ def create_app() -> Flask:
 
 
 def resolve_database_uri(database_path: Path) -> str:
-    database_uri = os.environ.get("DATABASE_URL") or os.environ.get("POSTGRES_URL")
-    if database_uri:
-        return normalize_database_uri(database_uri)
+    configured_uri = (
+        os.environ.get("SQLALCHEMY_DATABASE_URI")
+        or os.environ.get("DATABASE_URL")
+        or os.environ.get("POSTGRES_URL")
+    )
+    if configured_uri:
+        return normalize_database_uri(configured_uri)
 
     return f"sqlite:///{database_path.as_posix()}"
 
@@ -62,6 +66,9 @@ def is_vercel_runtime() -> bool:
 
 
 def normalize_database_uri(database_uri: str) -> str:
+    if database_uri.startswith("postgresql+psycopg://"):
+        return database_uri
+
     if database_uri.startswith("postgres://"):
         return database_uri.replace("postgres://", "postgresql+psycopg://", 1)
 

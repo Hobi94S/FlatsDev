@@ -8,12 +8,12 @@ Flask MVP for short-term rental operations with check-in standardization, public
 
 - `Flask` for fast iteration and simple deployment
 - `Flask-SQLAlchemy` for ORM-based persistence
-- `SQLite` for the MVP database
+- `SQLite` for local development with optional PostgreSQL in production
 - `Jinja2` + Tailwind CDN for the UI
 
 ### Why this structure
 
-- SQLAlchemy keeps the domain model ready for a future move from SQLite to MySQL or PostgreSQL.
+- SQLAlchemy keeps the domain model portable between SQLite locally and PostgreSQL in production.
 - Models, services, and routes are separated enough to stay readable without overengineering.
 - Business rules such as occupancy and overlap validation live in service functions instead of templates or routes.
 
@@ -208,6 +208,15 @@ pip install -r requirements.txt
 flask --app index run --debug
 ```
 
+Optional environment variables:
+
+```bash
+SECRET_KEY=change-me
+DATABASE_URL=postgresql://user:password@host:5432/database
+```
+
+When running `python run.py` directly, export these variables in your shell first.
+
 Open:
 
 - Admin overview: `http://127.0.0.1:5000/admin`
@@ -216,16 +225,39 @@ Open:
 
 ## 8. Vercel Deployment Notes
 
-- `index.py` exposes a standard Flask entrypoint and `pyproject.toml` also points Vercel to `index:app`.
+- `index.py` exposes a standard Flask entrypoint and `pyproject.toml` points Vercel to `index:app`.
 - Runtime dependencies are declared in both `pyproject.toml` and `requirements.txt` so Vercel and local installs resolve the same stack.
 - Static assets used by the deployed app live in `public/`, which matches Vercel's Flask guidance.
-- For production on Vercel, set `DATABASE_URL` or `POSTGRES_URL` to an external PostgreSQL database.
 - Set `SECRET_KEY`, `ADMIN_USERNAME`, and `ADMIN_PASSWORD` in Vercel Project Settings for production credentials.
-- Without a database URL on Vercel, the app now falls back to a temporary SQLite file under the runtime temp directory so the function can boot, but that data is ephemeral.
-- The local SQLite file in `instance/` is fine for development, but it should not be relied on for persistent Vercel storage.
 
-## 9. Migration Notes
+## 9. Vercel Database Setup
+
+This project should use a relational database such as PostgreSQL on Vercel.
+Vercel Edge Config is not a relational database and is better suited for feature flags,
+redirects, and low-frequency configuration data.
+
+Recommended setup:
+
+1. In the Vercel dashboard for `flats-dev`, open `Storage` or `Marketplace`.
+2. Install a Postgres provider such as `Neon` or `Supabase`.
+3. Attach the database to the `flats-dev` project and confirm Vercel creates a `DATABASE_URL` environment variable.
+4. Set a strong `SECRET_KEY` environment variable in Vercel as well.
+5. Redeploy the project. On first boot, SQLAlchemy will create the tables automatically.
+
+Local workflow with Vercel environment variables:
+
+```bash
+vercel pull
+vercel dev
+```
+
+The app now reads `SQLALCHEMY_DATABASE_URI`, `DATABASE_URL`, or `POSTGRES_URL` when present.
+For local development it falls back to `instance/campina_flats.sqlite3`. On Vercel, if no
+database URL is set, the app falls back to a temporary SQLite file under the runtime temp
+directory so the function can boot, but that data is ephemeral.
+
+## 10. Migration Notes
 
 - The app now uses SQLAlchemy ORM while still storing data in SQLite.
 - A lightweight compatibility step adds new `checkin_links` columns (`reservation_id`, `view_count`, `last_viewed`) if the old database already exists.
-- For production evolution, the next natural step is adding Alembic migrations and switching the database URL to MySQL or PostgreSQL.
+- For production evolution, the next natural step is adding Alembic migrations and using `DATABASE_URL` to point at PostgreSQL.

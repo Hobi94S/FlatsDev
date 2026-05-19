@@ -69,7 +69,7 @@ def register_routes(app: Flask) -> None:
             return None
 
         next_url = build_safe_next_url(request.full_path if request.query_string else request.path)
-        flash("Faca login para acessar o painel administrativo.", "error")
+        flash("Faça login para acessar o painel administrativo.", "error")
         return redirect(url_for("login", next=next_url))
 
     @app.get("/")
@@ -99,7 +99,7 @@ def register_routes(app: Flask) -> None:
                 flash("Login realizado com sucesso.", "success")
                 return redirect(next_url or url_for("admin_dashboard"))
 
-            flash("Usuario ou senha invalidos.", "error")
+            flash("Usuário ou senha inválidos.", "error")
 
         return render_template("login.html", next_url=next_url, username=username)
 
@@ -107,7 +107,7 @@ def register_routes(app: Flask) -> None:
     def logout():
         session.pop(ADMIN_SESSION_KEY, None)
         session.pop(ADMIN_USER_SESSION_KEY, None)
-        flash("Sessao encerrada com sucesso.", "success")
+        flash("Sessão encerrada com sucesso.", "success")
         return redirect(url_for("login"))
 
     @app.get("/admin")
@@ -219,7 +219,7 @@ def register_routes(app: Flask) -> None:
             if not existing_link.generated_by:
                 existing_link.generated_by = resolve_generated_by()
             db.session.commit()
-            flash("Ja existia um link ativo para esta reserva. O link foi reutilizado.", "success")
+            flash("Já existia um link ativo para esta reserva. O link foi reutilizado.", "success")
             return redirect(url_for("admin_dashboard", generated_link_id=existing_link.id))
 
         if existing_link is not None:
@@ -257,7 +257,7 @@ def register_routes(app: Flask) -> None:
         )
         db.session.add(replacement_link)
         db.session.commit()
-        flash("Novo link gerado e link anterior substituido.", "success")
+        flash("Novo link gerado e link anterior substituído.", "success")
         return redirect(url_for("admin_dashboard", generated_link_id=replacement_link.id))
 
     @app.post("/admin/links/<int:link_id>/mark-sent")
@@ -512,7 +512,7 @@ def register_routes(app: Flask) -> None:
             return redirect(url_for("reservations_dashboard"))
 
         if checkin_date is None or checkout_date is None:
-            flash("Informe datas validas de check-in e check-out.", "error")
+            flash("Informe datas válidas de check-in e check-out.", "error")
             return redirect(url_for("reservations_dashboard", flat_id=flat_id))
 
         if db.session.get(Flat, flat_id) is None:
@@ -576,11 +576,11 @@ def register_routes(app: Flask) -> None:
         mark_link_expired_if_needed(link)
         if link.status != CheckinLinkStatus.ACTIVE:
             db.session.commit()
-            flash("Este link nao esta mais disponivel para confirmacao.", "error")
+            flash("Este link não está mais disponível para confirmação.", "error")
             return redirect(url_for("public_checkin", token=token))
 
         if request.form.get("acknowledged") != "yes":
-            flash("Marque a confirmacao antes de continuar.", "error")
+            flash("Marque a confirmação antes de continuar.", "error")
             return redirect(url_for("public_checkin", token=token))
 
         if link.confirmation is None:
@@ -592,9 +592,9 @@ def register_routes(app: Flask) -> None:
                 )
             )
             db.session.commit()
-            flash("Confirmacao registrada com sucesso. Obrigado.", "success")
+            flash("Confirmação registrada com sucesso. Obrigado.", "success")
         else:
-            flash("Esta confirmacao ja havia sido registrada.", "success")
+            flash("Esta confirmação já havia sido registrada.", "success")
 
         return redirect(url_for("public_checkin", token=token))
 
@@ -790,12 +790,12 @@ def build_google_maps_directions_url(address: str) -> str:
 
 def build_whatsapp_share_url(link: CheckinLink, public_url: str) -> str:
     message = (
-        f"Ola{f' {link.guest_name}' if link.guest_name else ''}! "
-        f"Aqui esta o link do seu check-in em {link.flat.display_name}.\n\n"
+        f"Olá{f' {link.guest_name}' if link.guest_name else ''}! "
+        f"Aqui está o link do seu check-in em {link.flat.display_name}.\n\n"
         f"3 coisas importantes antes da chegada:\n"
         f"1. Check-in: {link.flat.checkin_time}\n"
         f"2. Wi-Fi: {link.flat.wifi_name}\n"
-        f"3. Estacionamento e acesso estao no link abaixo.\n\n"
+        f"3. Estacionamento e acesso estão no link abaixo.\n\n"
         f"Confirme no final com 'Li e estou ciente'.\n{public_url}"
     )
     return f"https://wa.me/?text={quote_plus(message)}"

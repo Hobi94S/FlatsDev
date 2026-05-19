@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Relatorios | Campina Flats{% endblock %}
+{% block title %}Relatórios | Campina Flats{% endblock %}
 
 {% block content %}
 <section class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -24,7 +24,7 @@
 
 <section class="mt-6 grid gap-6 xl:grid-cols-3">
     <div class="surface-card p-7">
-        <p class="kicker">Excecao</p>
+        <p class="kicker">Exceção</p>
         <h2 class="headline-lg">Reservas sem link</h2>
         <div class="mt-7 space-y-3">
             {% for reservation in reservations_without_link %}
@@ -40,12 +40,12 @@
     </div>
 
     <div class="surface-card p-7">
-        <p class="kicker">Excecao</p>
+        <p class="kicker">Exceção</p>
         <h2 class="headline-lg">Links sem abertura</h2>
         <div class="mt-7 space-y-3">
             {% for link in links_without_open %}
                 <div class="surface-card-subtle p-4">
-                    <p class="font-semibold text-slate-900">{{ link.guest_name or "Nao informado" }}</p>
+                    <p class="font-semibold text-slate-900">{{ link.guest_name or "Não informado" }}</p>
                     <p class="mt-1 text-sm text-slate-500">{{ link.flat.display_name }}</p>
                     <p class="mt-2 text-sm text-slate-600">Criado em {{ link.created_at|datetime_label }}</p>
                 </div>
@@ -56,17 +56,17 @@
     </div>
 
     <div class="surface-card p-7">
-        <p class="kicker">Excecao</p>
-        <h2 class="headline-lg">Abriu e nao confirmou</h2>
+        <p class="kicker">Exceção</p>
+        <h2 class="headline-lg">Abriu e não confirmou</h2>
         <div class="mt-7 space-y-3">
             {% for link in opened_without_confirmation %}
                 <div class="surface-card-subtle p-4">
-                    <p class="font-semibold text-slate-900">{{ link.guest_name or "Nao informado" }}</p>
+                    <p class="font-semibold text-slate-900">{{ link.guest_name or "Não informado" }}</p>
                     <p class="mt-1 text-sm text-slate-500">{{ link.flat.display_name }}</p>
                     <p class="mt-2 text-sm text-slate-600">Primeira abertura em {{ link.first_guest_opened_at|datetime_label }}</p>
                 </div>
             {% else %}
-                <p class="text-sm text-slate-500">Nenhum link nessa situacao.</p>
+                <p class="text-sm text-slate-500">Nenhum link nessa situação.</p>
             {% endfor %}
         </div>
     </div>
@@ -75,28 +75,27 @@
 <section class="surface-card mt-6 p-7">
     <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
-            <p class="kicker">Ultimos links</p>
-            <h2 class="headline-lg">Visao operacional</h2>
+            <p class="kicker">Últimos links</p>
+            <h2 class="headline-lg">Visão operacional</h2>
         </div>
-        <p class="max-w-md text-sm leading-7 text-slate-500">Agora o relatorio mostra sinais de risco e leitura real, nao so volume bruto.</p>
     </div>
 
     <div class="table-shell mt-7">
         <table class="data-table">
             <thead>
                 <tr>
-                    <th>Hospede</th>
+                    <th>Hóspede</th>
                     <th>Flat</th>
                     <th>Canal</th>
                     <th>Abertura</th>
-                    <th>Confirmacao</th>
-                    <th>Scroll max</th>
+                    <th>Confirmação</th>
+                    <th>Rolagem máx.</th>
                 </tr>
             </thead>
             <tbody>
                 {% for link in latest_links %}
                     <tr>
-                        <td class="font-semibold text-slate-900">{{ link.guest_name or "Nao informado" }}</td>
+                        <td class="font-semibold text-slate-900">{{ link.guest_name or "Não informado" }}</td>
                         <td>{{ link.flat.display_name }}</td>
                         <td>{{ link.sent_channel }}</td>
                         <td>{{ link.first_guest_opened_at|datetime_label }}</td>
@@ -105,7 +104,7 @@
                     </tr>
                 {% else %}
                     <tr>
-                        <td colspan="6" class="text-center text-slate-500">Nenhum dado disponivel ainda.</td>
+                        <td colspan="6" class="text-center text-slate-500">Nenhum dado disponível ainda.</td>
                     </tr>
                 {% endfor %}
             </tbody>

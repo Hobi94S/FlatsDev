@@ -6,7 +6,7 @@
 <section class="space-y-6">
     <div class="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
         <div class="max-w-3xl">
-            <p class="kicker">Operacao de check-in</p>
+            <p class="kicker">Operação de check-in</p>
             <h2 class="headline-xl">Gere, envie e acompanhe links de check-in</h2>
             <p class="body-copy">
                 Veja as reservas mais urgentes, evite link duplicado e acompanhe quem abriu ou confirmou.
@@ -24,7 +24,7 @@
                 <p class="mt-2 text-sm text-slate-500">Precisam de envio imediato</p>
             </div>
             <div class="action-card">
-                <p class="metric-label">Abriu e nao confirmou</p>
+                <p class="metric-label">Abriu e não confirmou</p>
                 <p class="action-card-value text-orange-500">{{ summary.opened_unconfirmed }}</p>
                 <p class="mt-2 text-sm text-slate-500">Pedem lembrete ou contato</p>
             </div>
@@ -43,7 +43,7 @@
                     <p class="kicker">Gerador</p>
                     <h3 class="headline-lg">Selecione a reserva e gere o link</h3>
                     <p class="body-copy">
-                        Busque por hospede, flat ou data. Se a reserva ja tiver link ativo, o sistema reutiliza o mesmo link para evitar duplicidade.
+                        Busque por hóspede, flat ou data. Se a reserva já tiver link ativo, o sistema reutiliza o mesmo link para evitar duplicidade.
                     </p>
                 </div>
                 <span class="eyebrow-pill">Busca de reservas</span>
@@ -52,7 +52,7 @@
             <form id="checkin-form" action="{{ url_for('create_checkin_link') }}" method="post" class="mt-10 space-y-6">
                 <div>
                     <label for="reservation-search" class="mb-2.5 block text-sm font-semibold text-slate-700">Buscar reserva</label>
-                    <input id="reservation-search" type="search" class="input-control" placeholder="Digite hospede, flat ou data">
+                    <input id="reservation-search" type="search" class="input-control" placeholder="Digite hóspede, flat ou data">
                 </div>
 
                 <div class="reservation-picker">
@@ -72,14 +72,14 @@
                                 </div>
                                 {% set active_link = reservation.checkin_links|selectattr('status', 'equalto', 'active')|list|first %}
                                 {% if active_link %}
-                                    <span class="chip chip-info">Ja tem link ativo</span>
+                                    <span class="chip chip-info">Já tem link ativo</span>
                                 {% else %}
                                     <span class="chip chip-warning">Sem link</span>
                                 {% endif %}
                             </div>
                         </button>
                     {% else %}
-                        <p class="px-3 py-4 text-sm text-slate-500">Nenhuma reserva disponivel para gerar link.</p>
+                        <p class="px-3 py-4 text-sm text-slate-500">Nenhuma reserva disponível para gerar link.</p>
                     {% endfor %}
                 </div>
 
@@ -113,8 +113,8 @@
                 <div class="surface-card-subtle p-5">
                     <div class="flex flex-col gap-4">
                         <div class="min-w-0">
-                            <label for="generated-link" class="mb-2.5 block text-sm font-semibold text-slate-700">Link publico</label>
-                            <input id="generated-link" type="text" readonly value="{{ generated_link_url or '' }}" placeholder="O link aparecera aqui apos a geracao" class="input-control bg-white font-mono text-sm text-slate-700">
+                            <label for="generated-link" class="mb-2.5 block text-sm font-semibold text-slate-700">Link público</label>
+                            <input id="generated-link" type="text" readonly value="{{ generated_link_url or '' }}" placeholder="O link aparecerá aqui após a geração" class="input-control bg-white font-mono text-sm text-slate-700">
                         </div>
                         <div class="flex flex-wrap gap-3">
                             <button type="button" id="copy-link-button" class="btn-secondary">Copiar link</button>
@@ -168,7 +168,7 @@
                                 <span class="status-dot"></span>
                                 <div>
                                     <p class="text-sm font-semibold text-slate-900">Sem link selecionado</p>
-                                    <p class="text-xs text-slate-500">Gere um link para acompanhar o envio e a confirmacao.</p>
+                                    <p class="text-xs text-slate-500">Gere um link para acompanhar o envio e a confirmação.</p>
                                 </div>
                             </div>
                         {% endif %}
@@ -181,10 +181,10 @@
             <div class="surface-card p-7">
                 <div class="flex items-start justify-between gap-4">
                     <div class="max-w-xl">
-                        <p class="kicker">Previa da pagina</p>
-                        <h3 class="headline-lg">O que o hospede vai ver</h3>
+                        <p class="kicker">Prévia da página</p>
+                        <h3 class="headline-lg">O que o hóspede vai ver</h3>
                         <p class="body-copy">
-                            Confira as informacoes principais antes de enviar o link.
+                            Confira as informações principais antes de enviar o link.
                         </p>
                     </div>
                     <span class="eyebrow-pill">Tela mobile</span>
@@ -196,7 +196,7 @@
                             <div class="preview-hero px-5 pb-6 pt-7 text-white">
                                 <p class="text-[0.68rem] font-bold uppercase tracking-[0.28em] text-blue-100">3 coisas importantes</p>
                                 <h4 id="preview-flat-name" class="mt-3 text-[1.5rem] font-semibold tracking-[-0.04em]">Selecione uma reserva</h4>
-                                <p id="preview-guest-name" class="mt-2 text-sm text-blue-100">Sem hospede selecionado</p>
+                                <p id="preview-guest-name" class="mt-2 text-sm text-blue-100">Sem hóspede selecionado</p>
                             </div>
                             <div class="space-y-4 p-5">
                                 <div class="grid grid-cols-2 gap-3">
@@ -214,19 +214,19 @@
                                 <div class="preview-mini-step">
                                     <p class="text-[0.68rem] font-bold uppercase tracking-[0.22em] text-slate-400">Wi-Fi</p>
                                     <p id="preview-wifi-name" class="mt-2 text-sm font-semibold text-slate-900">Selecione uma reserva</p>
-                                    <p id="preview-wifi-password" class="mt-1 text-xs text-slate-500">A senha aparecera aqui</p>
+                                    <p id="preview-wifi-password" class="mt-1 text-xs text-slate-500">A senha aparecerá aqui</p>
                                 </div>
                                 <div class="preview-mini-step">
                                     <p class="text-[0.68rem] font-bold uppercase tracking-[0.22em] text-slate-400">Estacionamento</p>
-                                    <p id="preview-parking" class="mt-2 text-sm leading-6 text-slate-600">A orientacao principal aparecera aqui.</p>
+                                    <p id="preview-parking" class="mt-2 text-sm leading-6 text-slate-600">A orientação principal aparecerá aqui.</p>
                                 </div>
                                 <div class="preview-mini-step">
                                     <p class="text-[0.68rem] font-bold uppercase tracking-[0.22em] text-slate-400">Como entrar</p>
-                                    <p id="preview-access" class="mt-2 text-sm leading-6 text-slate-600">A instrucao de acesso ao predio aparecera aqui.</p>
+                                    <p id="preview-access" class="mt-2 text-sm leading-6 text-slate-600">A instrução de acesso ao prédio aparecerá aqui.</p>
                                 </div>
                                 <div class="preview-mini-step">
                                     <p class="text-[0.68rem] font-bold uppercase tracking-[0.22em] text-slate-400">Suporte</p>
-                                    <p id="preview-support" class="mt-2 text-sm leading-6 text-slate-600">Contato de fallback nao definido.</p>
+                                    <p id="preview-support" class="mt-2 text-sm leading-6 text-slate-600">Contato de suporte não definido.</p>
                                 </div>
                                 <div class="rounded-2xl bg-emerald-400 px-4 py-3 text-center text-sm font-semibold text-slate-950">
                                     Li e estou ciente
@@ -238,7 +238,7 @@
             </div>
 
             <div class="surface-card p-7">
-                <p class="kicker">Pendencias</p>
+                <p class="kicker">Pendências</p>
                 <h3 class="headline-lg">Quem precisa de acompanhamento agora</h3>
                 <div class="mt-7 space-y-3">
                     {% for link in follow_up_links %}
@@ -247,13 +247,13 @@
                                 <div>
                                     <p class="font-semibold text-slate-900">{{ link.guest_name }}</p>
                                     <p class="mt-1 text-sm text-slate-500">{{ link.flat.display_name }}</p>
-                                    <p class="mt-2 text-sm text-slate-600">Abriu em {{ link.first_guest_opened_at|datetime_label }} e ainda nao confirmou.</p>
+                                    <p class="mt-2 text-sm text-slate-600">Abriu em {{ link.first_guest_opened_at|datetime_label }} e ainda não confirmou.</p>
                                 </div>
                                 <a href="{{ url_for('link_details', link_id=link.id) }}" class="muted-link">Detalhes</a>
                             </div>
                         </div>
                     {% else %}
-                        <p class="text-sm text-slate-500">Nenhum hospede aberto sem confirmacao no momento.</p>
+                        <p class="text-sm text-slate-500">Nenhum hóspede com abertura sem confirmação no momento.</p>
                     {% endfor %}
                 </div>
             </div>
@@ -266,26 +266,26 @@
                 <p class="kicker">Links recentes</p>
                 <h3 class="headline-lg">Acompanhe os links recentes</h3>
             </div>
-            <p class="max-w-xl text-sm leading-7 text-slate-500">Veja canal, ultima abertura, expiracao e status da confirmacao de forma mais clara.</p>
+            <p class="max-w-xl text-sm leading-7 text-slate-500">Veja canal, última abertura, expiração e status da confirmação.</p>
         </div>
 
         <div class="table-shell mt-7">
             <table class="data-table">
                 <thead>
                     <tr>
-                        <th>Hospede / Flat</th>
-                        <th>Periodo</th>
+                        <th>Hóspede / Flat</th>
+                        <th>Período</th>
                         <th>Canal</th>
-                        <th>Ultima abertura</th>
+                        <th>Última abertura</th>
                         <th>Status</th>
-                        <th>Acoes</th>
+                        <th>Ações</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for link in recent_links %}
                         <tr>
                             <td>
-                                <p class="font-semibold text-slate-900">{{ link.guest_name or "Nao informado" }}</p>
+                                <p class="font-semibold text-slate-900">{{ link.guest_name or "Não informado" }}</p>
                                 <p class="mt-1 text-xs text-slate-500">{{ link.flat.display_name }}</p>
                             </td>
                             <td>
@@ -301,7 +301,7 @@
                                 {% if link.confirmation %}
                                     <span class="chip chip-success">Confirmado</span>
                                 {% elif link.first_guest_opened_at %}
-                                    <span class="chip chip-warning">Aberto sem confirmar</span>
+                                    <span class="chip chip-warning">Aberto sem confirmação</span>
                                 {% elif link.status == 'expired' %}
                                     <span class="chip chip-neutral">Expirado</span>
                                 {% else %}
@@ -392,16 +392,16 @@
             selectedReservationCard.classList.add("hidden");
 
             previewFlatName.textContent = "Selecione uma reserva";
-            previewGuestName.textContent = "Sem hospede selecionado";
+                        previewGuestName.textContent = "Sem hóspede selecionado";
             previewCheckinTime.textContent = "--:--";
             previewCheckoutTime.textContent = "--:--";
             previewCheckinDate.textContent = "Sem data";
             previewCheckoutDate.textContent = "Sem data";
             previewWifiName.textContent = "Selecione uma reserva";
-            previewWifiPassword.textContent = "A senha aparecera aqui";
-            previewParking.textContent = "A orientacao principal aparecera aqui.";
-            previewAccess.textContent = "A instrucao de acesso ao predio aparecera aqui.";
-            previewSupport.textContent = "Contato de fallback nao definido.";
+            previewWifiPassword.textContent = "A senha aparecerá aqui";
+            previewParking.textContent = "A orientação principal aparecerá aqui.";
+            previewAccess.textContent = "A instrução de acesso ao prédio aparecerá aqui.";
+            previewSupport.textContent = "Contato de suporte não definido.";
             return;
         }
 
@@ -412,7 +412,7 @@
         selectedReservationDates.textContent = `${formatDate(reservation.checkin_date)} a ${formatDate(reservation.checkout_date)}`;
 
         previewFlatName.textContent = reservation.flat_name;
-        previewGuestName.textContent = `Hospede: ${reservation.guest_name}`;
+        previewGuestName.textContent = `Hóspede: ${reservation.guest_name}`;
         previewCheckinTime.textContent = reservation.checkin_time;
         previewCheckoutTime.textContent = reservation.checkout_time;
         previewCheckinDate.textContent = formatDate(reservation.checkin_date);
@@ -421,7 +421,7 @@
         previewWifiPassword.textContent = `Senha: ${reservation.wifi_password}`;
         previewParking.textContent = firstLine(reservation.parking_instructions) || "Sem estacionamento cadastrado.";
         previewAccess.textContent = firstLine(reservation.building_access) || reservation.door_code || "Sem acesso cadastrado.";
-        previewSupport.textContent = reservation.fallback_contact || "Contato de fallback nao definido.";
+        previewSupport.textContent = reservation.fallback_contact || "Contato de suporte não definido.";
     }
 
     async function copyGeneratedLink() {

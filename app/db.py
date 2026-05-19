@@ -83,22 +83,22 @@ SEED_FLATS: list[dict[str, str]] = [
 DEFAULT_CHECKIN_TIME = "14:00"
 DEFAULT_CHECKOUT_TIME = "11:00"
 DEFAULT_HOUSE_RULES = (
-    "1. Nao fumar dentro do flat.\n"
-    "2. Respeitar o horario de silencio das 22:00 as 08:00.\n"
+    "1. Não fumar dentro do flat.\n"
+    "2. Respeitar o horário de silêncio das 22:00 às 08:00.\n"
     "3. Descartar o lixo antes do check-out.\n"
     "4. Informe imediatamente qualquer problema na hospedagem."
 )
 DEFAULT_WIFI_NAME = "FlatsDev"
 DEFAULT_WIFI_PASSWORD = "alterar-senha"
-DEFAULT_PARKING = "Consulte a recepcao ou a administracao para receber a vaga correta do quarto."
+DEFAULT_PARKING = "Consulte a recepção ou a administração para receber a vaga correta do quarto."
 DEFAULT_ARRIVAL_STEPS = (
-    "1. Confira o predio e o numero do quarto antes de sair.\n"
-    "2. Ao chegar, siga para a recepcao ou entrada principal.\n"
-    "3. Use as instrucoes de acesso ao predio e depois a senha da porta do flat."
+    "1. Confira o prédio e o número do quarto antes de sair.\n"
+    "2. Ao chegar, siga para a recepção ou entrada principal.\n"
+    "3. Use as instruções de acesso ao prédio e depois a senha da porta do flat."
 )
-DEFAULT_BUILDING_ACCESS = "Apresente-se na portaria e siga as orientacoes de acesso informadas no link."
-DEFAULT_DOOR_CODE = "Senha da fechadura digital a confirmar pela operacao."
-DEFAULT_FALLBACK_CONTACT = "WhatsApp da operacao: +55 (83) 99999-9999"
+DEFAULT_BUILDING_ACCESS = "Apresente-se na portaria e siga as orientações de acesso informadas no link."
+DEFAULT_DOOR_CODE = "Senha da fechadura digital a confirmar pela operação."
+DEFAULT_FALLBACK_CONTACT = "WhatsApp da operação: +55 (83) 99999-9999"
 
 
 def initialize_database(app: Flask) -> None:
@@ -190,7 +190,7 @@ def backfill_flat_structure() -> None:
         if not flat.door_code:
             flat.door_code = DEFAULT_DOOR_CODE
 
-        if not flat.fallback_contact or flat.fallback_contact == "WhatsApp da operacao":
+        if not flat.fallback_contact or flat.fallback_contact == "WhatsApp da operação: +55 (83) 99999-9999":
             flat.fallback_contact = DEFAULT_FALLBACK_CONTACT
 
 
@@ -243,7 +243,7 @@ def seed_flats() -> None:
                 flat.building_access = DEFAULT_BUILDING_ACCESS
             if not flat.door_code:
                 flat.door_code = DEFAULT_DOOR_CODE
-            if not flat.fallback_contact or flat.fallback_contact == "WhatsApp da operacao":
+            if not flat.fallback_contact or flat.fallback_contact == "WhatsApp da operação: +55 (83) 99999-9999":
                 flat.fallback_contact = DEFAULT_FALLBACK_CONTACT
             continue
 

@@ -91,13 +91,13 @@ def resolve_engine_options(database_uri: str) -> dict[str, object]:
 def register_template_filters(app: Flask) -> None:
     status_labels = {
         "booked": "Reservada",
-        "completed": "Concluida",
+        "completed": "Concluída",
         "cancelled": "Cancelada",
         "Occupied": "Ocupado",
-        "Upcoming": "Proxima",
-        "Available": "Disponivel",
+        "Upcoming": "Próxima",
+        "Available": "Disponível",
         "active": "Ativo",
-        "replaced": "Substituido",
+        "replaced": "Substituído",
         "revoked": "Revogado",
         "expired": "Expirado",
     }

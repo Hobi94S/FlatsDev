@@ -21,7 +21,7 @@
             </div>
 
             <div>
-                <label for="guest_name" class="mb-2.5 block text-sm font-semibold text-slate-700">Nome do hospede</label>
+                <label for="guest_name" class="mb-2.5 block text-sm font-semibold text-slate-700">Nome do hóspede</label>
                 <input id="guest_name" name="guest_name" type="text" required class="input-control" placeholder="Ex: Marina Costa">
             </div>
 
@@ -64,11 +64,11 @@
             <table class="data-table">
                 <thead>
                     <tr>
-                        <th>Hospede</th>
+                        <th>Hóspede</th>
                         <th>Flat</th>
                         <th>Datas</th>
                         <th>Status</th>
-                        <th>Acoes</th>
+                        <th>Ações</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -83,7 +83,7 @@
                                 </span>
                             </td>
                             <td>
-                                <a href="{{ url_for('flat_calendar', flat_id=reservation.flat_id) }}" class="muted-link">Ver calendario</a>
+                                <a href="{{ url_for('flat_calendar', flat_id=reservation.flat_id) }}" class="muted-link">Ver calendário</a>
                             </td>
                         </tr>
                     {% else %}

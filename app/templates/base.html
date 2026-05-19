@@ -17,7 +17,7 @@
                         <img src="/brand/logo-light.png" alt="Campina Flats" class="brand-logo brand-logo-sidebar">
                         <div class="brand-text-group">
                             <p class="brand-name brand-name-sidebar">Campina Flats</p>
-                            <p class="brand-support-text">Operacao interna</p>
+                            <p class="brand-support-text">Operação interna</p>
                         </div>
                     </div>
                 </a>
@@ -45,13 +45,13 @@
                         <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 19.5h15M7.5 16.5v-6m4.5 6v-10.5m4.5 10.5v-3" />
                         </svg>
-                        <span>Relatorios</span>
+                        <span>Relatórios</span>
                     </a>
                 </nav>
 
                 <div class="surface-card-subtle mt-auto p-5">
-                    <p class="text-sm font-semibold tracking-[-0.02em] text-slate-900">Operacao centralizada</p>
-                    <p class="mt-2 text-sm leading-7 text-slate-600">Cadastre flats, acompanhe reservas e compartilhe links de check-in em um unico painel.</p>
+                    <p class="text-sm font-semibold tracking-[-0.02em] text-slate-900">Operação centralizada</p>
+                    <p class="mt-2 text-sm leading-7 text-slate-600">Cadastre flats, acompanhe reservas e compartilhe links de check-in em um único painel.</p>
                 </div>
             </aside>
 
@@ -63,12 +63,11 @@
                                 <img src="/brand/logo-light.png" alt="Campina Flats" class="brand-logo brand-logo-topbar">
                                 <div class="brand-text-group">
                                     <p class="brand-name brand-name-topbar">Campina Flats</p>
-                                    <p class="brand-support-text">Operacao interna</p>
+                                    <p class="brand-support-text">Operação interna</p>
                                 </div>
                             </div>
                             <div>
                                 <h1 class="text-[1rem] font-semibold tracking-[-0.035em] text-slate-950 sm:text-[1.18rem]">PAINEL DE CHECK-IN</h1>
-                                <p class="mt-1 text-xs font-medium text-slate-500">Geracao, envio e acompanhamento sem perder contexto</p>
                             </div>
                         </div>
                         <div class="flex items-center gap-3">
@@ -93,7 +92,7 @@
                         <a href="{{ url_for('flats_dashboard') }}" class="mobile-nav-link {{ 'mobile-nav-link-active' if request.endpoint in ['flats_dashboard', 'flat_calendar', 'create_flat_route', 'edit_flat_route', 'update_flat_route'] else '' }}">Flats</a>
                         <a href="{{ url_for('admin_dashboard') }}" class="mobile-nav-link {{ 'mobile-nav-link-active' if request.endpoint in ['admin_dashboard', 'create_checkin_link', 'link_details'] else '' }}">Check-in</a>
                         <a href="{{ url_for('reservations_dashboard') }}" class="mobile-nav-link {{ 'mobile-nav-link-active' if request.endpoint in ['reservations_dashboard', 'create_reservation_route'] else '' }}">Reservas</a>
-                        <a href="{{ url_for('reports_dashboard') }}" class="mobile-nav-link {{ 'mobile-nav-link-active' if request.endpoint == 'reports_dashboard' else '' }}">Relatorios</a>
+                        <a href="{{ url_for('reports_dashboard') }}" class="mobile-nav-link {{ 'mobile-nav-link-active' if request.endpoint == 'reports_dashboard' else '' }}">Relatórios</a>
                     </nav>
     {% else %}
         <main class="public-shell min-h-screen px-4 py-8 pb-36 text-slate-900 sm:px-6 lg:px-8">

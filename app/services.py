@@ -87,43 +87,43 @@ def validate_flat_payload(
     exclude_flat_id: int | None = None,
 ) -> dict[str, str]:
     if not payload["building_name"]:
-        raise ValueError("O nome do empreendimento e obrigatorio.")
+        raise ValueError("O nome do empreendimento é obrigatório.")
 
     if not payload["room_number"]:
-        raise ValueError("O numero do quarto ou flat e obrigatorio.")
+        raise ValueError("O número do quarto ou flat é obrigatório.")
 
     if not payload["address"]:
-        raise ValueError("O endereco e obrigatorio.")
+        raise ValueError("O endereço é obrigatório.")
 
     if not payload["checkin_time"]:
-        raise ValueError("O horario de check-in e obrigatorio.")
+        raise ValueError("O horário de check-in é obrigatório.")
 
     if not payload["checkout_time"]:
-        raise ValueError("O horario de check-out e obrigatorio.")
+        raise ValueError("O horário de check-out é obrigatório.")
 
     if not payload["house_rules"]:
-        raise ValueError("As regras da hospedagem sao obrigatorias.")
+        raise ValueError("As regras da hospedagem são obrigatórias.")
 
     if not payload["wifi_name"]:
-        raise ValueError("O nome da rede Wi-Fi e obrigatorio.")
+        raise ValueError("O nome da rede Wi-Fi é obrigatório.")
 
     if not payload["wifi_password"]:
-        raise ValueError("A senha do Wi-Fi e obrigatoria.")
+        raise ValueError("A senha do Wi-Fi é obrigatória.")
 
     if not payload["parking_instructions"]:
-        raise ValueError("As instrucoes de estacionamento sao obrigatorias.")
+        raise ValueError("As instruções de estacionamento são obrigatórias.")
 
     if not payload["arrival_steps"]:
-        raise ValueError("O passo a passo de chegada e obrigatorio.")
+        raise ValueError("O passo a passo de chegada é obrigatório.")
 
     if not payload["building_access"]:
-        raise ValueError("As instrucoes de acesso ao predio sao obrigatorias.")
+        raise ValueError("As instruções de acesso ao prédio são obrigatórias.")
 
     if not payload["door_code"]:
-        raise ValueError("O codigo, senha ou instrucoes da porta sao obrigatorios.")
+        raise ValueError("O código, senha ou instruções da porta são obrigatórios.")
 
     if not payload["fallback_contact"]:
-        raise ValueError("O contato de suporte para chegada e obrigatorio.")
+        raise ValueError("O contato de suporte para chegada é obrigatório.")
 
     existing_flat_query = (
         select(Flat)
@@ -135,7 +135,7 @@ def validate_flat_payload(
 
     existing_flat = db.session.scalar(existing_flat_query)
     if existing_flat is not None:
-        raise ValueError("Ja existe um flat com esse empreendimento e quarto.")
+        raise ValueError("Já existe um flat com esse empreendimento e quarto.")
 
     return payload
 
@@ -415,10 +415,10 @@ def create_reservation(
     normalized_guest_name = guest_name.strip()
 
     if not normalized_guest_name:
-        raise ValueError("O nome do hospede e obrigatorio.")
+        raise ValueError("O nome do hóspede é obrigatório.")
 
     if status not in ReservationStatus.choices():
-        raise ValueError("Status de reserva invalido.")
+        raise ValueError("Status de reserva inválido.")
 
     if checkout_date <= checkin_date:
         raise ValueError("A data de check-out deve ser posterior ao check-in.")
@@ -432,7 +432,7 @@ def create_reservation(
 
         if overlapping_reservation is not None:
             raise ValueError(
-                "Este flat ja possui uma reserva que conflita com o periodo informado."
+                "Este flat já possui uma reserva que conflita com o período informado."
             )
 
     reservation = Reservation(

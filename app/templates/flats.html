@@ -7,7 +7,7 @@
     <div class="surface-card p-7">
         <p class="kicker">Novo flat</p>
         <h2 class="headline-lg">Adicionar flat ou quarto</h2>
-        <p class="body-copy">Cadastre um novo quarto com empreendimento, endereco e instrucoes de hospedagem.</p>
+        <p class="body-copy">Cadastre um novo quarto com empreendimento, endereço e instruções de hospedagem.</p>
 
         <form action="{{ url_for('create_flat_route') }}" method="post" class="mt-10 space-y-6">
             <div>
@@ -21,17 +21,17 @@
             </div>
 
             <div>
-                <label for="address" class="mb-2.5 block text-sm font-semibold text-slate-700">Endereco</label>
-                <textarea id="address" name="address" rows="3" required class="input-control" placeholder="Rua, numero, bairro, cidade e CEP"></textarea>
+                <label for="address" class="mb-2.5 block text-sm font-semibold text-slate-700">Endereço</label>
+                <textarea id="address" name="address" rows="3" required class="input-control" placeholder="Rua, número, bairro, cidade e CEP"></textarea>
             </div>
 
             <div class="grid gap-5 md:grid-cols-2">
                 <div>
-                    <label for="checkin_time" class="mb-2.5 block text-sm font-semibold text-slate-700">Horario de check-in</label>
+                    <label for="checkin_time" class="mb-2.5 block text-sm font-semibold text-slate-700">Horário de check-in</label>
                     <input id="checkin_time" name="checkin_time" type="time" value="14:00" required class="input-control">
                 </div>
                 <div>
-                    <label for="checkout_time" class="mb-2.5 block text-sm font-semibold text-slate-700">Horario de check-out</label>
+                    <label for="checkout_time" class="mb-2.5 block text-sm font-semibold text-slate-700">Horário de check-out</label>
                     <input id="checkout_time" name="checkout_time" type="time" value="11:00" required class="input-control">
                 </div>
             </div>
@@ -48,7 +48,7 @@
 
             <div>
                 <label for="house_rules" class="mb-2.5 block text-sm font-semibold text-slate-700">Regras da hospedagem</label>
-                <textarea id="house_rules" name="house_rules" rows="5" required class="input-control" placeholder="Liste as principais orientacoes para o hospede"></textarea>
+                <textarea id="house_rules" name="house_rules" rows="5" required class="input-control" placeholder="Liste as principais orientações para o hóspede"></textarea>
             </div>
 
             <div>
@@ -57,23 +57,23 @@
             </div>
 
             <div>
-                <label for="building_access" class="mb-2.5 block text-sm font-semibold text-slate-700">Acesso ao predio</label>
-                <textarea id="building_access" name="building_access" rows="4" required class="input-control" placeholder="Portaria, elevador, torre, bloco ou liberacao necessaria"></textarea>
+                <label for="building_access" class="mb-2.5 block text-sm font-semibold text-slate-700">Acesso ao prédio</label>
+                <textarea id="building_access" name="building_access" rows="4" required class="input-control" placeholder="Portaria, elevador, torre, bloco ou liberação necessária"></textarea>
             </div>
 
             <div>
-                <label for="door_code" class="mb-2.5 block text-sm font-semibold text-slate-700">Senha ou instrucao da porta</label>
+                <label for="door_code" class="mb-2.5 block text-sm font-semibold text-slate-700">Senha ou instrução da porta</label>
                 <input id="door_code" name="door_code" type="text" required class="input-control" placeholder="Ex: Fechadura digital 1407 | senha 4321#">
             </div>
 
             <div>
                 <label for="arrival_steps" class="mb-2.5 block text-sm font-semibold text-slate-700">Passo a passo de chegada</label>
-                <textarea id="arrival_steps" name="arrival_steps" rows="5" required class="input-control" placeholder="1. Chegue ao predio...&#10;2. Siga ate a recepcao...&#10;3. Use a senha da porta..."></textarea>
+                <textarea id="arrival_steps" name="arrival_steps" rows="5" required class="input-control" placeholder="1. Chegue ao prédio...&#10;2. Siga até a recepção...&#10;3. Use a senha da porta..."></textarea>
             </div>
 
             <div>
                 <label for="fallback_contact" class="mb-2.5 block text-sm font-semibold text-slate-700">Contato de suporte</label>
-                <input id="fallback_contact" name="fallback_contact" type="text" required class="input-control" placeholder="Ex: WhatsApp operacao +55 83 99999-9999">
+                <input id="fallback_contact" name="fallback_contact" type="text" required class="input-control" placeholder="Ex.: WhatsApp da operação +55 83 99999-9999">
             </div>
 
             <button type="submit" class="btn-primary">
@@ -87,8 +87,8 @@
             <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                 <div class="max-w-3xl">
                     <p class="kicker">Lista dos quartos</p>
-                    <h2 class="headline-xl">Catalogo de flats cadastrados</h2>
-                    <p class="body-copy">Visualize os empreendimentos e todos os quartos ja disponiveis no sistema.</p>
+                    <h2 class="headline-xl">Catálogo de flats cadastrados</h2>
+                    <p class="body-copy">Visualize os empreendimentos e todos os quartos já disponíveis no sistema.</p>
                 </div>
             </div>
 
@@ -124,7 +124,7 @@
                     <p class="kicker">Disponibilidade</p>
                     <h2 class="headline-lg">Status atual dos quartos</h2>
                 </div>
-                <p class="max-w-md text-sm leading-7 text-slate-500">Acompanhe ocupacao, proximas reservas e acesse o calendario de cada flat.</p>
+                <p class="max-w-md text-sm leading-7 text-slate-500">Acompanhe ocupação, próximas reservas e acesse o calendário de cada flat.</p>
             </div>
 
             <div class="table-shell mt-7">
@@ -133,10 +133,10 @@
                         <tr>
                             <th>Flat</th>
                             <th>Status</th>
-                            <th>Hospede</th>
-                            <th>Proximo check-in</th>
-                            <th>Proximo check-out</th>
-                            <th>Acoes</th>
+                            <th>Hóspede</th>
+                            <th>Próximo check-in</th>
+                            <th>Próximo check-out</th>
+                            <th>Ações</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -156,7 +156,7 @@
                                 <td>{{ item.next_checkout_date|date_label }}</td>
                                 <td>
                                     <div class="flex flex-wrap gap-3">
-                                        <a href="{{ url_for('flat_calendar', flat_id=item.flat.id) }}" class="muted-link">Calendario</a>
+                                        <a href="{{ url_for('flat_calendar', flat_id=item.flat.id) }}" class="muted-link">Calendário</a>
                                         <a href="{{ url_for('edit_flat_route', flat_id=item.flat.id) }}" class="text-sm font-semibold text-slate-600 transition hover:text-slate-900">Editar</a>
                                         <a href="{{ url_for('reservations_dashboard', flat_id=item.flat.id) }}" class="text-sm font-semibold text-slate-600 transition hover:text-slate-900">Adicionar reserva</a>
                                     </div>
@@ -164,7 +164,7 @@
                             </tr>
                         {% else %}
                             <tr>
-                                <td colspan="6" class="text-center text-slate-500">Nenhum flat disponivel.</td>
+                                <td colspan="6" class="text-center text-slate-500">Nenhum flat disponível.</td>
                             </tr>
                         {% endfor %}
                     </tbody>

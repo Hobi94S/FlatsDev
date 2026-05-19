@@ -7,6 +7,7 @@ from urllib.parse import quote_plus
 from flask import (
     Flask,
     abort,
+    current_app,
     flash,
     jsonify,
     redirect,
@@ -216,7 +217,7 @@ def register_routes(app: Flask) -> None:
         if existing_link is not None and not is_link_expired(existing_link):
             existing_link.sent_channel = sent_channel
             if not existing_link.generated_by:
-                existing_link.generated_by = session.get(ADMIN_USER_SESSION_KEY, ADMIN_USERNAME)
+                existing_link.generated_by = resolve_generated_by()
             db.session.commit()
             flash("Ja existia um link ativo para esta reserva. O link foi reutilizado.", "success")
             return redirect(url_for("admin_dashboard", generated_link_id=existing_link.id))
@@ -227,7 +228,7 @@ def register_routes(app: Flask) -> None:
         checkin_link = build_checkin_link(
             reservation=reservation,
             sent_channel=sent_channel,
-            generated_by=session.get(ADMIN_USER_SESSION_KEY, ADMIN_USERNAME),
+            generated_by=resolve_generated_by(),
         )
         db.session.add(checkin_link)
         db.session.commit()
@@ -252,7 +253,7 @@ def register_routes(app: Flask) -> None:
         replacement_link = build_checkin_link(
             reservation=link.reservation,
             sent_channel=link.sent_channel,
-            generated_by=session.get(ADMIN_USER_SESSION_KEY, ADMIN_USERNAME),
+            generated_by=resolve_generated_by(),
         )
         db.session.add(replacement_link)
         db.session.commit()
@@ -752,6 +753,13 @@ def normalize_sent_channel(raw_value: str | None) -> str:
         return raw_value
 
     return "WhatsApp"
+
+
+def resolve_generated_by() -> str:
+    return session.get(
+        ADMIN_USER_SESSION_KEY,
+        current_app.config.get("ADMIN_USERNAME", "admin"),
+    )
 
 
 def parse_date_field(raw_value: str | None) -> date | None:
